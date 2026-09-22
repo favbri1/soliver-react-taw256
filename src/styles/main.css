@@ -1,0 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-ink-50 text-ink-900 font-sans antialiased;
+}
+
+::selection {
+  @apply bg-gold-100 text-ink-900;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-ink-200 rounded-full;
+}
+
+.focus-ring {
+  @apply outline-none focus-visible:ring-2 focus-visible:ring-gold-500 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-900;
+}
+
+.container-page {
+  @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+}
+
+.eyebrow {
+  @apply text-[11px] font-semibold uppercase tracking-widest2 text-gold-600;
+}
+
+.card {
+  @apply bg-white rounded-xl2 border border-ink-100 shadow-soft;
+}
+
+.btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-200 focus-ring disabled:opacity-40 disabled:pointer-events-none;
+}
+.btn-primary {
+  @apply btn bg-wine-500 text-white hover:bg-wine-600 active:scale-[0.98];
+}
+.btn-dark {
+  @apply btn bg-ink-900 text-white hover:bg-ink-800 active:scale-[0.98];
+}
+.btn-outline {
+  @apply btn border border-ink-900/15 text-ink-900 hover:border-ink-900/40 bg-white;
+}
+.btn-gold {
+  @apply btn bg-gold-500 text-ink-900 hover:bg-gold-600 active:scale-[0.98];
+}
+
+@keyframes fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+.fade-in { animation: fade-in .2s ease; }
