@@ -202,10 +202,10 @@ Leyenda: ✅ cumplido · 🟡 parcial · ❌ pendiente
 | 13 | Funciona en móvil | ✅ | Diseño responsive con Tailwind, drawer móvil, tablas que se convierten en tarjetas |
 | 14 | API documentada (Swagger/Scalar) | ❌ | Depende del backend |
 | 15 | Código en GitHub | ✅ | https://github.com/favbri1/soliver-react-taw256 |
-| 16 | Despliegue en sitio gratuito | ❌ | Pendiente |
+| 16 | Despliegue en sitio gratuito | ✅ | vercel |
 | 17 | Docker | ❌ | Pendiente |
 | 18 | Kubernetes | ❌ | Pendiente |
-| 19 | Agente inteligente (opcional) | ❌ | No obligatorio |
+| 19 | Agente inteligente (opcional) | ❌ | lo haremos despues |
 
 ---
 
