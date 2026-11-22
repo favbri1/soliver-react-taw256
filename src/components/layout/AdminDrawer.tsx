@@ -1,5 +1,7 @@
 import { NavLink, useLocation } from 'react-router-dom'
 import { useUiStore } from '@/stores/ui.store'
+import { canAccess } from '@/utils/permissions'
+import { useLogout } from '@/hooks/useLogout'
 import {
   LayoutDashboard,
   Shirt,
@@ -12,6 +14,8 @@ import {
   Wallet,
   BarChart3,
   Settings,
+  ShieldCheck,
+  LogOut,
   X,
 } from 'lucide-react'
 
@@ -27,12 +31,17 @@ const items = [
   { label: 'Pagos', to: '/pagos', icon: Wallet },
   { label: 'Reportes', to: '/reportes', icon: BarChart3 },
   { label: 'Configuración', to: '/configuracion', icon: Settings },
+  { label: 'Accesos', to: '/admin/accesos', icon: ShieldCheck },
 ]
 
 export default function AdminDrawer() {
   const mobileDrawerOpen = useUiStore((s) => s.mobileDrawerOpen)
   const closeDrawer = useUiStore((s) => s.closeDrawer)
+  const role = useUiStore((s) => s.role)
+  const adminName = useUiStore((s) => s.adminName)
+  const doLogout = useLogout()
   const location = useLocation()
+  const visibleItems = items.filter((i) => canAccess(role, i.to))
 
   if (!mobileDrawerOpen) return null
 
@@ -47,7 +56,7 @@ export default function AdminDrawer() {
           </button>
         </div>
         <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-          {items.map((item) => {
+          {visibleItems.map((item) => {
             const Icon = item.icon
             const active = location.pathname === item.to
             return (
@@ -63,6 +72,22 @@ export default function AdminDrawer() {
             )
           })}
         </nav>
+        <div className="border-t border-white/10 p-3">
+          <p className="truncate px-3 text-xs text-white/50">
+            {adminName} · {role}
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              closeDrawer()
+              doLogout()
+            }}
+            className="mt-2 flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-white/70 hover:bg-white/5 hover:text-white"
+          >
+            <LogOut className="h-[18px] w-[18px]" />
+            Cerrar sesión
+          </button>
+        </div>
       </div>
     </div>
   )

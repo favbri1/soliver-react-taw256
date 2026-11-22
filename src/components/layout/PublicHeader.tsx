@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
 import logo from '@/assets/logo.png'
+import { ADMIN_GATE_ROUTE } from '@/config/adminAccess'
 
 const links = [
   { label: 'Catálogo', to: '/' },
@@ -37,7 +38,7 @@ export default function PublicHeader() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
-          <Link to="/login" className="btn-outline border-white/20 bg-transparent text-white hover:border-white/50">
+          <Link to={ADMIN_GATE_ROUTE} className="btn-outline border-white/20 bg-transparent text-white hover:border-white/50">
             Acceso administrativo
           </Link>
           <Link to="/#catalogo" className="btn-gold">
@@ -58,7 +59,7 @@ export default function PublicHeader() {
                 {l.label}
               </Link>
             ))}
-            <Link to="/login" className="btn-outline mt-2 border-white/20 bg-transparent text-white" onClick={() => setOpen(false)}>
+            <Link to={ADMIN_GATE_ROUTE} className="btn-outline mt-2 border-white/20 bg-transparent text-white" onClick={() => setOpen(false)}>
               Acceso administrativo
             </Link>
           </nav>

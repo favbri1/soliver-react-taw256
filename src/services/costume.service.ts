@@ -1,5 +1,6 @@
 import type { Costume, CostumeCategory } from '@/types'
 import { costumes as mockCostumes } from '@/mocks/costumes'
+import { isCostumeActive } from '@/utils/costume'
 import { delay } from '@/utils/async'
 
 // ------------------------------------------------------------
@@ -20,7 +21,8 @@ export interface CostumeFilters {
 
 export const costumeService = {
   async getCostumes(filters: CostumeFilters = {}): Promise<Costume[]> {
-    let result = [...mockCostumes]
+    // Eliminación lógica: los trajes eliminados no aparecen en el catálogo.
+    let result = mockCostumes.filter(isCostumeActive)
 
     if (filters.category && filters.category !== 'Todas') {
       result = result.filter((c) => c.category === filters.category)
@@ -42,11 +44,18 @@ export const costumeService = {
     return delay(result, 220)
   },
 
-  async getCostumeById(id: string): Promise<Costume | undefined> {
-    return delay(mockCostumes.find((c) => c.id === id), 180)
+  /**
+   * Por defecto NO devuelve trajes eliminados (el detalle público y la reserva
+   * no deben abrirse para un traje dado de baja). El historial de reservas usa
+   * `includeDeleted: true` para seguir mostrando el nombre del traje.
+   */
+  async getCostumeById(id: string, options: { includeDeleted?: boolean } = {}): Promise<Costume | undefined> {
+    const found = mockCostumes.find((c) => c.id === id)
+    const visible = found && (options.includeDeleted || isCostumeActive(found)) ? found : undefined
+    return delay(visible, 180)
   },
 
   async getFeatured(): Promise<Costume[]> {
-    return delay(mockCostumes.filter((c) => c.featured), 180)
+    return delay(mockCostumes.filter((c) => c.featured && isCostumeActive(c)), 180)
   },
 }

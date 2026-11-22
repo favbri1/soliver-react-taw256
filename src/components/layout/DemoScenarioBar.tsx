@@ -1,4 +1,4 @@
-import { Presentation } from 'lucide-react'
+import { CalendarClock } from 'lucide-react'
 import { useUiStore } from '@/stores/ui.store'
 import { demoScenarios } from '@/mocks/demoScenarios'
 
@@ -9,8 +9,8 @@ export default function DemoScenarioBar() {
   return (
     <div className="flex items-center gap-3 overflow-x-auto border-b border-ink-100 bg-white px-4 py-2.5 sm:px-6 lg:px-8">
       <div className="flex shrink-0 items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-400">
-        <Presentation className="h-3.5 w-3.5" />
-        Modo demostración
+        <CalendarClock className="h-3.5 w-3.5" />
+        Escenario
       </div>
       <div className="flex gap-2">
         {demoScenarios.map((s) => (

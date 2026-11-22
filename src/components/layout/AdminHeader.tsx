@@ -1,9 +1,12 @@
-import { Bell, Menu, Search } from 'lucide-react'
+import { Bell, LogOut, Menu, Search } from 'lucide-react'
 import { useUiStore } from '@/stores/ui.store'
 import { usePageTitle } from '@/router/titles'
+import { useLogout } from '@/hooks/useLogout'
 
 export default function AdminHeader() {
   const adminName = useUiStore((s) => s.adminName)
+  const role = useUiStore((s) => s.role)
+  const doLogout = useLogout()
   const openDrawer = useUiStore((s) => s.openDrawer)
   const pageTitle = usePageTitle()
 
@@ -35,8 +38,21 @@ export default function AdminHeader() {
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-ink-900 font-display text-sm font-semibold text-gold-500">
             {adminName.charAt(0)}
           </div>
-          <span className="hidden text-sm font-medium text-ink-900 sm:block">{adminName}</span>
+          <div className="hidden leading-tight sm:block">
+            <p className="text-sm font-medium text-ink-900">{adminName}</p>
+            <p className="text-[11px] text-ink-400">{role}</p>
+          </div>
         </div>
+        <button
+          type="button"
+          onClick={doLogout}
+          className="focus-ring flex items-center gap-1.5 rounded-full border border-ink-200 px-3 py-2 text-xs font-medium text-ink-600 transition-colors hover:border-ink-900/40"
+          aria-label="Cerrar sesión"
+          title="Cerrar sesión"
+        >
+          <LogOut className="h-4 w-4" />
+          <span className="hidden md:inline">Salir</span>
+        </button>
       </div>
     </header>
   )

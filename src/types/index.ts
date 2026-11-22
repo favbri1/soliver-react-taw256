@@ -60,6 +60,8 @@ export interface Costume {
   description: string
   rentalPrice: number
   deposit: number
+  /** Eliminación lógica: fecha ISO en que se "eliminó". Si existe, el traje se oculta de las listas pero el registro se conserva. */
+  deletedAt?: string | null
   availableSizes: string[]
   pieceIds: string[]
   images: CostumeImage[]
@@ -193,4 +195,33 @@ export interface AlertItem {
   type: 'warning' | 'success' | 'info'
   title: string
   message: string
+}
+
+// ---------------------------------------------------------------------------
+// Autenticación, permisos y log de accesos
+// ---------------------------------------------------------------------------
+
+export type UserRole = 'Administrador' | 'Empleado'
+
+export interface AppUser {
+  id: string
+  fullName: string
+  username: string
+  email: string
+  role: UserRole
+  /** Hash de la contraseña ("sha256$sal$hash"). La contraseña en texto plano NUNCA se guarda. */
+  passwordHash: string
+  createdAt: string // ISO
+}
+
+export type AccessEvent = 'Ingreso' | 'Salida' | 'Intento fallido' | 'Bloqueo'
+
+export interface AccessLogEntry {
+  id: string
+  username: string
+  /** IP simulada: el navegador no puede conocer su IP; la registrará el backend. */
+  ip: string
+  event: AccessEvent
+  browser: string
+  dateTime: string // ISO
 }

@@ -17,7 +17,7 @@ export default function SettingsView() {
 
   return (
     <div>
-      <PageHeader eyebrow="Sistema" title="Configuración" description="Ajustes generales de la plataforma (maqueta de demostración)." />
+      <PageHeader eyebrow="Sistema" title="Configuración" description="Ajustes generales de la plataforma." />
 
       <div className="grid gap-4 lg:grid-cols-[14rem_1fr]">
         <nav className="card p-2">
@@ -37,7 +37,7 @@ export default function SettingsView() {
 
         <div className="card p-6">
           <p className="font-display text-xl font-semibold capitalize text-ink-900">{sections.find((s) => s.id === active)?.label}</p>
-          <p className="mt-1 text-sm text-ink-400">Esta sección es parte de la maqueta y no persiste cambios todavía.</p>
+          <p className="mt-1 text-sm text-ink-400">Administra los parámetros de esta sección.</p>
 
           <div className="mt-6 space-y-4">
             <label className="block max-w-md">

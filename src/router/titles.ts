@@ -7,7 +7,10 @@ const TITLES: Record<string, string> = {
   '/reservar/:id': 'Reservar traje',
   '/reserva/:id': 'Reserva confirmada',
   '/mi-reserva': 'Mi reserva',
+  '/acceso-administrativo': 'Acceso administrativo',
   '/login': 'Acceso administrativo',
+  '/registro': 'Crear cuenta',
+  '/recuperar-contrasena': 'Recuperar contraseña',
   '/dashboard': 'Dashboard',
   '/admin/trajes': 'Trajes',
   '/inventario': 'Inventario',
@@ -19,6 +22,7 @@ const TITLES: Record<string, string> = {
   '/pagos': 'Pagos',
   '/reportes': 'Reportes',
   '/configuracion': 'Configuración',
+  '/admin/accesos': 'Registro de accesos',
 }
 
 export function usePageTitle(): string {

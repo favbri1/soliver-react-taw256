@@ -8,6 +8,7 @@ import { clientService } from '@/services/client.service'
 import { formatCurrency, nightsBetween } from '@/utils/format'
 import QuantitySizePicker from '@/components/costumes/QuantitySizePicker'
 import { useQuantitySizes, groupSizes } from '@/hooks/useQuantitySizes'
+import { validateFullName, validatePhone, validateOptionalEmail } from '@/utils/validators'
 import DateRangePicker from '@/components/common/DateRangePicker'
 import AvailabilityBadge from '@/components/reservations/AvailabilityBadge'
 
@@ -45,6 +46,13 @@ export default function ReservationFlowView() {
   const [clientName, setClientName] = useState('')
   const [clientPhone, setClientPhone] = useState('')
   const [clientEmail, setClientEmail] = useState('')
+  // Validación de los datos del cliente: el error aparece al salir del campo
+  // (onBlur) o al intentar continuar con datos inválidos.
+  const [touched, setTouched] = useState({ name: false, phone: false, email: false })
+  const nameError = validateFullName(clientName)
+  const phoneError = validatePhone(clientPhone)
+  const emailError = validateOptionalEmail(clientEmail)
+  const clientDataValid = !nameError && !phoneError && !emailError
 
   const [submitting, setSubmitting] = useState(false)
 
@@ -87,11 +95,16 @@ export default function ReservationFlowView() {
     if (step === 1) return selectedSizes.length === quantity && selectedSizes.every(Boolean)
     if (step === 2) return !!start && !!end
     if (step === 3) return availState === 'available'
-    if (step === 4) return !!clientName && !!clientPhone
+    if (step === 4) return clientDataValid
     return true
   }
 
   function next() {
+    // En el paso de datos del cliente, si hay errores los mostramos todos.
+    if (step === 4 && !clientDataValid) {
+      setTouched({ name: true, phone: true, email: true })
+      return
+    }
     if (!canAdvance()) return
     if (step === 2) checkAvailability()
     setStep((s) => Math.min(s + 1, steps.length))
@@ -193,31 +206,62 @@ export default function ReservationFlowView() {
           </div>
         )}
 
-        {/* Step 4: cliente */}
+        {/* Step 4: cliente (con validaciones) */}
         {step === 4 && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             <p className="mb-1 text-sm font-medium text-ink-900">Tus datos</p>
-            <input
-              value={clientName}
-              onChange={(e) => setClientName(e.target.value)}
-              type="text"
-              placeholder="Nombre completo"
-              className="focus-ring w-full rounded-lg border border-ink-200 px-3 py-2.5 text-sm"
-            />
-            <input
-              value={clientPhone}
-              onChange={(e) => setClientPhone(e.target.value)}
-              type="tel"
-              placeholder="Teléfono"
-              className="focus-ring w-full rounded-lg border border-ink-200 px-3 py-2.5 text-sm"
-            />
-            <input
-              value={clientEmail}
-              onChange={(e) => setClientEmail(e.target.value)}
-              type="email"
-              placeholder="Correo (opcional)"
-              className="focus-ring w-full rounded-lg border border-ink-200 px-3 py-2.5 text-sm"
-            />
+
+            <div>
+              <input
+                value={clientName}
+                onChange={(e) => setClientName(e.target.value)}
+                onBlur={() => setTouched((t) => ({ ...t, name: true }))}
+                type="text"
+                maxLength={80}
+                autoComplete="name"
+                aria-invalid={touched.name && !!nameError}
+                placeholder="Nombre completo"
+                className={`focus-ring w-full rounded-lg border px-3 py-2.5 text-sm ${
+                  touched.name && nameError ? 'border-wine-500' : 'border-ink-200'
+                }`}
+              />
+              {touched.name && nameError ? <p className="mt-1 text-xs text-wine-600">{nameError}</p> : null}
+            </div>
+
+            <div>
+              <input
+                value={clientPhone}
+                onChange={(e) => setClientPhone(e.target.value)}
+                onBlur={() => setTouched((t) => ({ ...t, phone: true }))}
+                type="tel"
+                inputMode="tel"
+                maxLength={16}
+                autoComplete="tel"
+                aria-invalid={touched.phone && !!phoneError}
+                placeholder="Teléfono (ej. 7001 2345)"
+                className={`focus-ring w-full rounded-lg border px-3 py-2.5 text-sm ${
+                  touched.phone && phoneError ? 'border-wine-500' : 'border-ink-200'
+                }`}
+              />
+              {touched.phone && phoneError ? <p className="mt-1 text-xs text-wine-600">{phoneError}</p> : null}
+            </div>
+
+            <div>
+              <input
+                value={clientEmail}
+                onChange={(e) => setClientEmail(e.target.value)}
+                onBlur={() => setTouched((t) => ({ ...t, email: true }))}
+                type="email"
+                maxLength={100}
+                autoComplete="email"
+                aria-invalid={touched.email && !!emailError}
+                placeholder="Correo (opcional)"
+                className={`focus-ring w-full rounded-lg border px-3 py-2.5 text-sm ${
+                  touched.email && emailError ? 'border-wine-500' : 'border-ink-200'
+                }`}
+              />
+              {touched.email && emailError ? <p className="mt-1 text-xs text-wine-600">{emailError}</p> : null}
+            </div>
           </div>
         )}
 
@@ -283,10 +327,10 @@ export default function ReservationFlowView() {
         {/* Step 6: anticipo */}
         {step === 6 && (
           <div className="space-y-4">
-            <p className="font-display text-lg font-semibold text-ink-900">Anticipo simulado</p>
+            <p className="font-display text-lg font-semibold text-ink-900">Anticipo de reserva</p>
             <p className="text-sm text-ink-500">
               Para confirmar tu reserva de {quantity} traje{quantity === 1 ? '' : 's'} se solicita un anticipo de{' '}
-              {formatCurrency(advance)}. Selecciona un método (simulado).
+              {formatCurrency(advance)}. Selecciona un método de pago.
             </p>
             <div className="grid grid-cols-3 gap-2">
               <button className="btn-outline">Efectivo</button>
@@ -305,7 +349,7 @@ export default function ReservationFlowView() {
             <span />
           )}
           {step < steps.length ? (
-            <button className="btn-dark" disabled={!canAdvance()} onClick={next}>
+            <button className="btn-dark" disabled={step !== 4 && !canAdvance()} onClick={next}>
               Continuar
             </button>
           ) : (

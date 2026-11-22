@@ -20,7 +20,7 @@ export default function ReservationConfirmationView() {
     reservationService.getReservationById(id).then(async (r) => {
       setReservation(r ?? null)
       if (r) {
-        const [c, cl] = await Promise.all([costumeService.getCostumeById(r.costumeId), clientService.getClientById(r.clientId)])
+        const [c, cl] = await Promise.all([costumeService.getCostumeById(r.costumeId, { includeDeleted: true }), clientService.getClientById(r.clientId)])
         setCostume(c ?? null)
         setClient(cl ?? null)
       }

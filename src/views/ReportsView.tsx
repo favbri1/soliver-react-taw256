@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import { Download } from 'lucide-react'
 import { dashboardService, type DashboardStats } from '@/services/dashboard.service'
 import { useUiStore } from '@/stores/ui.store'
+import { demoScenarios } from '@/mocks/demoScenarios'
+import { buildReportPdf, reportFileName } from '@/utils/reportPdf'
+import { downloadBytes } from '@/utils/pdf'
 import PageHeader from '@/components/common/PageHeader'
 import ChartCard from '@/components/dashboard/ChartCard'
 import BarList from '@/components/dashboard/BarList'
@@ -10,14 +13,29 @@ import LineTrend from '@/components/dashboard/LineTrend'
 export default function ReportsView() {
   const demoScenario = useUiStore((s) => s.demoScenario)
   const pushToast = useUiStore((s) => s.pushToast)
+  const adminName = useUiStore((s) => s.adminName)
   const [stats, setStats] = useState<DashboardStats | null>(null)
 
   useEffect(() => {
     dashboardService.getDashboardStats(demoScenario).then(setStats)
   }, [demoScenario])
 
+  // Reporte PDF real: se genera en el navegador con los datos del dashboard
+  // (indicadores, gráficos de barras, inventario y alertas) y se descarga.
   function exportReport() {
-    pushToast('Exportación simulada: en la versión final esto generará un PDF/Excel real.', 'info')
+    if (!stats) return
+    try {
+      const now = new Date()
+      const bytes = buildReportPdf(stats, {
+        scenarioLabel: demoScenarios.find((s) => s.id === demoScenario)?.label ?? demoScenario,
+        generatedBy: adminName,
+        generatedAt: now,
+      })
+      downloadBytes(bytes, reportFileName(now))
+      pushToast('Reporte PDF generado y descargado.', 'success')
+    } catch {
+      pushToast('No se pudo generar el reporte PDF.', 'error')
+    }
   }
 
   if (!stats) return null
@@ -30,7 +48,7 @@ export default function ReportsView() {
         description="Visión analítica de reservas, ingresos e inventario."
         actions={
           <button className="btn-outline" onClick={exportReport}>
-            <Download className="h-4 w-4" /> Exportar reporte
+            <Download className="h-4 w-4" /> Exportar PDF
           </button>
         }
       />

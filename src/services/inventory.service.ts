@@ -8,6 +8,7 @@ import type {
 } from '@/types'
 import { costumes as mockCostumes } from '@/mocks/costumes'
 import { pieces as mockPieces, getPiecesByCostume } from '@/mocks/pieces'
+import { isCostumeActive } from '@/utils/costume'
 import { delay } from '@/utils/async'
 
 // Reemplazar por:
@@ -16,10 +17,10 @@ import { delay } from '@/utils/async'
 //   PATCH  /api/inventory/pieces/:pieceId
 //   POST   /api/inventory/costumes        -> createCostume
 //   PATCH  /api/inventory/costumes/:id    -> updateCostume
-//   DELETE /api/inventory/costumes/:id    -> deleteCostume
+//   DELETE /api/inventory/costumes/:id    -> deleteCostume (borrado LÓGICO: deleted_at)
 
 // ⚠️ IMPORTANTE (mientras no exista backend):
-// createCostume / updateCostume / deleteCostume mutan el arreglo `mockCostumes`
+// createCostume / updateCostume / deleteCostume (lógico) mutan el arreglo `mockCostumes`
 // que vive EN MEMORIA. Los cambios se ven en todo el frontend (catálogo público,
 // panel admin, detalle) mientras la pestaña siga abierta, pero SE PIERDEN al
 // recargar la página (F5), porque no hay persistencia real todavía.
@@ -47,7 +48,8 @@ function nextCostumeCode(): string {
 
 export const inventoryService = {
   async getCostumes(): Promise<Costume[]> {
-    return delay([...mockCostumes], 220)
+    // Eliminación lógica: solo los trajes activos.
+    return delay(mockCostumes.filter(isCostumeActive), 220)
   },
 
   async getPiecesByCostume(costumeId: string): Promise<Piece[]> {
@@ -71,7 +73,7 @@ export const inventoryService = {
       'Extraviado',
     ]
     const dist = statuses
-      .map((status) => ({ status, count: mockCostumes.filter((c) => c.status === status).length }))
+      .map((status) => ({ status, count: mockCostumes.filter((c) => isCostumeActive(c) && c.status === status).length }))
       .filter((d) => d.count > 0)
     return delay(dist, 180)
   },
@@ -103,7 +105,8 @@ export const inventoryService = {
 
   async updateCostume(id: string, changes: Partial<CostumeInput>): Promise<Costume | undefined> {
     const index = mockCostumes.findIndex((c) => c.id === id)
-    if (index === -1) return delay(undefined, 200)
+    // No se puede editar un traje ya eliminado lógicamente.
+    if (index === -1 || !isCostumeActive(mockCostumes[index])) return delay(undefined, 200)
     const updated: Costume = { ...mockCostumes[index], ...changes }
     mockCostumes[index] = updated
     return delay(updated, 300)
@@ -111,8 +114,11 @@ export const inventoryService = {
 
   async deleteCostume(id: string): Promise<boolean> {
     const index = mockCostumes.findIndex((c) => c.id === id)
-    if (index === -1) return delay(false, 200)
-    mockCostumes.splice(index, 1)
+    if (index === -1 || !isCostumeActive(mockCostumes[index])) return delay(false, 200)
+    // ELIMINACIÓN LÓGICA: el registro NO se borra del arreglo; solo se marca con
+    // la fecha de eliminación. Así se conserva el historial (reservas y alquileres
+    // que referencian este traje) y, con backend, se podría restaurar.
+    mockCostumes[index] = { ...mockCostumes[index], deletedAt: new Date().toISOString() }
     return delay(true, 300)
   },
 }

@@ -2,6 +2,8 @@ import { create } from 'zustand'
 import type { Costume, InventoryDistribution, Piece } from '@/types'
 import { inventoryService, type CostumeInput } from '@/services/inventory.service'
 
+// Eliminación lógica: deleteCostume marca el traje con deletedAt en el servicio y
+// aquí solo se quita de la lista visible.
 // ⚠️ Sin backend todavía: todas las mutaciones de abajo (create/update/delete)
 // viven solo en memoria (arreglo mock + estado de Zustand). Los cambios
 // desaparecen al recargar la página. Cuando exista la API, basta con que

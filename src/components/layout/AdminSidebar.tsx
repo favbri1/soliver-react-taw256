@@ -1,5 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom'
 import { useUiStore } from '@/stores/ui.store'
+import { canAccess } from '@/utils/permissions'
 import logo from '@/assets/logo.png'
 import {
   LayoutDashboard,
@@ -13,6 +14,7 @@ import {
   Wallet,
   BarChart3,
   Settings,
+  ShieldCheck,
   ChevronsLeft,
   ChevronsRight,
 } from 'lucide-react'
@@ -48,14 +50,22 @@ const groups = [
   },
   {
     title: 'Sistema',
-    items: [{ label: 'Configuración', to: '/configuracion', icon: Settings }],
+    items: [
+      { label: 'Configuración', to: '/configuracion', icon: Settings },
+      { label: 'Accesos', to: '/admin/accesos', icon: ShieldCheck },
+    ],
   },
 ]
 
 export default function AdminSidebar() {
   const sidebarCollapsed = useUiStore((s) => s.sidebarCollapsed)
   const toggleSidebar = useUiStore((s) => s.toggleSidebar)
+  const role = useUiStore((s) => s.role)
   const location = useLocation()
+  // Menú según permisos del rol: se ocultan las secciones que no puede ver.
+  const visibleGroups = groups
+    .map((g) => ({ ...g, items: g.items.filter((i) => canAccess(role, i.to)) }))
+    .filter((g) => g.items.length > 0)
 
   return (
     <aside
@@ -71,7 +81,7 @@ export default function AdminSidebar() {
       </div>
 
       <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-5">
-        {groups.map((group) => (
+        {visibleGroups.map((group) => (
           <div key={group.title}>
             {!sidebarCollapsed && (
               <p className="tracking-widest2 mb-2 px-2 text-[10px] font-semibold uppercase text-white/35">{group.title}</p>

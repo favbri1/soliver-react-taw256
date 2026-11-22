@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { DemoScenario } from '@/types'
+import type { DemoScenario, UserRole } from '@/types'
 
 interface Toast {
   id: number
@@ -10,11 +10,13 @@ interface Toast {
 interface UiState {
   isAuthenticated: boolean
   adminName: string
+  username: string
+  role: UserRole
   sidebarCollapsed: boolean
   mobileDrawerOpen: boolean
   demoScenario: DemoScenario
   toasts: Toast[]
-  login: (username: string) => void
+  login: (user: { username: string; fullName: string; role: UserRole }) => void
   logout: () => void
   toggleSidebar: () => void
   openDrawer: () => void
@@ -28,15 +30,18 @@ let toastSeq = 1
 export const useUiStore = create<UiState>((set, get) => ({
   isAuthenticated: false,
   adminName: 'Administrador SOLIVER',
+  username: '',
+  role: 'Empleado',
   sidebarCollapsed: false,
   mobileDrawerOpen: false,
   demoScenario: 'dia-normal',
   toasts: [],
-  login: (username) => {
-    // Autenticación simulada: cualquier credencial no vacía ingresa al panel.
-    set({ isAuthenticated: true, adminName: username || 'Administrador SOLIVER' })
+  login: (user) => {
+    // La verificación de credenciales la hace auth.service (simulado). Aquí solo
+    // se guarda la sesión: nombre, usuario y rol (para los permisos de menú/rutas).
+    set({ isAuthenticated: true, adminName: user.fullName, username: user.username, role: user.role })
   },
-  logout: () => set({ isAuthenticated: false }),
+  logout: () => set({ isAuthenticated: false, username: '', role: 'Empleado', mobileDrawerOpen: false }),
   toggleSidebar: () => set({ sidebarCollapsed: !get().sidebarCollapsed }),
   openDrawer: () => set({ mobileDrawerOpen: true }),
   closeDrawer: () => set({ mobileDrawerOpen: false }),

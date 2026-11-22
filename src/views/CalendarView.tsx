@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
-import { costumes } from '@/mocks/costumes'
+import { costumes as allCostumes } from '@/mocks/costumes'
+import { isCostumeActive } from '@/utils/costume'
 import { reservationService } from '@/services/reservation.service'
 import type { Reservation } from '@/types'
 import PageHeader from '@/components/common/PageHeader'
 import { formatDate } from '@/utils/format'
 
 export default function CalendarView() {
+  // Eliminación lógica: no ofrecer trajes eliminados en el selector.
+  const costumes = useMemo(() => allCostumes.filter(isCostumeActive), [])
   const [selectedCostumeId, setSelectedCostumeId] = useState(costumes[0]?.id ?? '')
   const [reservations, setReservations] = useState<Reservation[]>([])
 

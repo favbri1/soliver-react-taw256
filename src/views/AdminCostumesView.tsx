@@ -13,7 +13,7 @@ import { formatCurrency } from '@/utils/format'
 
 // ============================================================
 // ⚠️ CRUD SOLO EN MEMORIA (todavía no hay backend).
-// Crear, editar y eliminar trajes modifica el arreglo mock en memoria
+// Crear, editar y eliminar (lógicamente) trajes modifica el arreglo mock en memoria
 // a través de useInventoryStore. Los cambios se reflejan en toda la app
 // mientras la pestaña siga abierta, pero SE PIERDEN al recargar (F5).
 // Cuando exista la API, inventoryService hará el fetch real y esta vista
@@ -61,9 +61,10 @@ export default function AdminCostumesView() {
   }
 
   async function handleDelete(costume: Costume) {
-    // Confirmación previa antes de borrar.
+    // Confirmación previa. La eliminación es LÓGICA: el traje se marca como eliminado
+    // (deletedAt) y se oculta de las listas, pero el registro se conserva.
     const ok = window.confirm(
-      `¿Eliminar el traje "${costume.name}" (${costume.code})?\n\nEsta acción no se puede deshacer.`,
+      `¿Eliminar el traje "${costume.name}" (${costume.code})?\n\nDejará de mostrarse en el catálogo y en el inventario. Las reservas existentes conservan su historial.`,
     )
     if (!ok) return
     await deleteCostume(costume.id)
@@ -133,11 +134,6 @@ export default function AdminCostumesView() {
           </button>
         }
       />
-
-      <p className="mb-4 rounded-lg bg-gold-500/10 px-3 py-2 text-xs text-ink-600">
-        Modo demo: los trajes creados, editados o eliminados se guardan solo en memoria y se
-        reinician al recargar la página.
-      </p>
 
       {!loading && costumes.length === 0 ? (
         <EmptyState

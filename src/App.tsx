@@ -14,6 +14,11 @@ import ReservationFlowView from '@/views/ReservationFlowView'
 import ReservationConfirmationView from '@/views/ReservationConfirmationView'
 import MyReservationLookupView from '@/views/MyReservationLookupView'
 import LoginView from '@/views/LoginView'
+import RegisterView from '@/views/RegisterView'
+import ForgotPasswordView from '@/views/ForgotPasswordView'
+import AdminGateView from '@/views/AdminGateView'
+import RequireAdminGate from '@/components/auth/RequireAdminGate'
+import { ADMIN_GATE_ROUTE } from '@/config/adminAccess'
 
 import DashboardView from '@/views/DashboardView'
 import AdminCostumesView from '@/views/AdminCostumesView'
@@ -26,6 +31,7 @@ import ClientsView from '@/views/ClientsView'
 import PaymentsView from '@/views/PaymentsView'
 import ReportsView from '@/views/ReportsView'
 import SettingsView from '@/views/SettingsView'
+import AccessLogView from '@/views/AccessLogView'
 
 function ScrollToHash() {
   const location = useLocation()
@@ -68,7 +74,15 @@ export default function App() {
           <Route path="/mi-reserva" element={<MyReservationLookupView />} />
         </Route>
 
-        <Route path="/login" element={<LoginView />} />
+        {/* Contraseña de acceso administrativo (barrera previa al login) */}
+        <Route path={ADMIN_GATE_ROUTE} element={<AdminGateView />} />
+
+        {/* Autenticación del personal: solo accesible tras superar la barrera */}
+        <Route element={<RequireAdminGate />}>
+          <Route path="/login" element={<LoginView />} />
+          <Route path="/registro" element={<RegisterView />} />
+          <Route path="/recuperar-contrasena" element={<ForgotPasswordView />} />
+        </Route>
 
         <Route
           element={
@@ -88,6 +102,7 @@ export default function App() {
           <Route path="/pagos" element={<PaymentsView />} />
           <Route path="/reportes" element={<ReportsView />} />
           <Route path="/configuracion" element={<SettingsView />} />
+          <Route path="/admin/accesos" element={<AccessLogView />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
