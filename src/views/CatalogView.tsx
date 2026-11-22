@@ -7,10 +7,13 @@ import Skeleton from '@/components/common/Skeleton'
 import { CATEGORY_LABELS, type CostumeCategory } from '@/types'
 import tr001a from '@/assets/tr001-a.png'
 import tr002a from '@/assets/tr002-a.jpg'
-import tr003a from '@/assets/tr003-a.jpg'
+import tr003a from '@/assets/chinaeleg.png'
 import tr004a from '@/assets/tr004-a.jpg'
 import tr005a from '@/assets/tr005-a.jpg'
 import tr006a from '@/assets/tr006-a.jpg'
+
+
+
 
 const categories: { key: CostumeCategory; image: string }[] = [
   { key: 'Varon-Tropa', image: tr001a },
@@ -146,8 +149,6 @@ export default function CatalogView() {
         ) : (
           <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {items.map((c, i) => (
-              // Pregunta 1: le pasamos la nueva prop `discountPercent` a un par de
-              // tarjetas (a modo de demo) para probar que la prop nueva funciona.
               <CostumeCard key={c.id} costume={c} discountPercent={i % 5 === 0 ? 15 : undefined} />
             ))}
           </div>

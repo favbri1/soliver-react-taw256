@@ -1,10 +1,5 @@
 import { Link } from 'react-router-dom'
 
-/**
- * Pregunta 5 — Vista nueva y simple para probar una ruta nueva.
- * No recibe datos de ningún servicio: es solo una página de ejemplo
- * (preguntas frecuentes) conectada a /preguntas-frecuentes.
- */
 const faqs = [
   {
     q: '¿Con cuántos días de anticipación debo reservar?',

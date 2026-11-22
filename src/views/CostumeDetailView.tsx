@@ -49,13 +49,7 @@ export default function CostumeDetailView() {
     }
   }, [id])
 
-  // Pregunta 4 — Nuevo useEffect que reacciona a un cambio de estado puntual.
-  // Cada vez que el usuario cambia la fecha de inicio o de fin, el resultado
-  // de disponibilidad que se haya mostrado antes queda obsoleto (correspondía
-  // a otras fechas), así que lo volvemos a 'idle' automáticamente.
-  // El arreglo de dependencias es [start, end] porque son justamente los dos
-  // valores que, al cambiar, invalidan el chequeo anterior; no depende de
-  // `costume` ni de `id` porque esos cambios ya se manejan en el otro efecto.
+
   useEffect(() => {
     setAvailState('idle')
   }, [start, end])
@@ -208,8 +202,6 @@ export default function CostumeDetailView() {
                 </div>
               </div>
 
-              {/* Llevamos la selección (cantidad, tallas y fechas) al flujo de reserva
-                  usando el state del Link, para que el cliente no tenga que repetirla. */}
               <Link
                 to={`/reservar/${costume.id}`}
                 state={{ quantity, sizes: selectedSizes, start, end }}

@@ -11,13 +11,6 @@ import PasswordStrengthMeter from '@/components/auth/PasswordStrengthMeter'
 
 type Step = 'request' | 'reset'
 
-/**
- * Recuperación de contraseña (simulada). Flujo:
- *  1) El usuario indica su usuario o correo.
- *  2) El sistema envía un código de 6 dígitos de un solo uso que vence en 10 minutos.
- *  3) Con el código define una contraseña nueva (que debe cumplir la política de fortaleza).
- * Por seguridad, el mensaje es el mismo exista o no la cuenta.
- */
 export default function ForgotPasswordView() {
   const navigate = useNavigate()
   const pushToast = useUiStore((s) => s.pushToast)

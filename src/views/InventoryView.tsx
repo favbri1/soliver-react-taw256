@@ -51,17 +51,6 @@ export default function InventoryView() {
                   <ChevronDown className={`h-4 w-4 text-ink-400 transition-transform ${expanded === c.id ? 'rotate-180' : ''}`} />
                 </div>
               </button>
-              {/*
-                Pregunta 3 — Este bloque antes era `{expanded === c.id && (...)}`.
-                Aquí lo reescribimos como ternario `condición ? JSX : null`.
-                Diferencia principal:
-                - Con `&&`, si la condición fuera un número/string "falsy" raro
-                  (0, "", NaN) React podría renderizar ese valor por accidente.
-                  Con booleanos como este no pasa, pero es el riesgo típico del `&&`.
-                - El ternario es más explícito: deja clarísimo cuál es la rama
-                  "verdadera" y cuál la "falsa" (aquí `null`), aunque sea un poco
-                  más largo de escribir para este caso puntual.
-              */}
               {expanded === c.id ? (
                 <div className="border-t border-ink-100 bg-ink-50/50 px-4 py-3">
                   <p className="mb-2 text-xs font-medium uppercase tracking-wide text-ink-400">Piezas del conjunto {c.code}</p>

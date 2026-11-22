@@ -1,12 +1,20 @@
 import type { Costume } from '@/types'
 import { getPiecesByCostume } from './pieces'
-import tr001a from '@/assets/tr001-a.png'
 import tr001b from '@/assets/tr001-b.jpg'
 import tr002a from '@/assets/tr002-a.jpg'
-import tr003a from '@/assets/tr003-a.jpg'
-import tr004a from '@/assets/tr004-a.jpg'
-import tr005a from '@/assets/tr005-a.jpg'
-import tr006a from '@/assets/tr006-a.jpg'
+import achachi from '@/assets/tr005-a.jpg'
+import infantecapo from '@/assets/tr006-a.jpg'
+
+
+import capo1 from '@/assets/capo1.png'
+import capoImp from '@/assets/capoimp.png' 
+import capoImpReal from '@/assets/capoimpreal.png' 
+import chinaEleg from '@/assets/chinaeleg.png' 
+import chinaTradi from '@/assets/chinatradi.png' 
+import cholitaGala from '@/assets/cholitagala.png' 
+import cholitaPa from '@/assets/cholitapa.png' 
+import chinaInf from '@/assets/chinainf.png' 
+import capoPlata from '@/assets/capoplata.png' 
 
 function img(seed: string, alt: string) {
   return { url: `https://picsum.photos/seed/${seed}/900/1100`, alt }
@@ -24,7 +32,7 @@ export const costumes: Costume[] = [
     deposit: 300,
     availableSizes: ['S', 'M', 'L', 'XL'],
     pieceIds: getPiecesByCostume('TR-001').map((p) => p.id),
-    images: [{ url: tr001a, alt: 'Caporal Varón Tropa Clásico' },{ url: tr001b, alt: 'detalle bordado'}],
+    images: [{ url: capo1, alt: 'Caporal Varón Tropa Clásico' }, { url: tr001b, alt: 'detalle bordado' }],
     status: 'Disponible',
     featured: true,
     rating: 4.8,
@@ -57,7 +65,7 @@ export const costumes: Costume[] = [
     deposit: 500,
     availableSizes: ['M', 'L', 'XL'],
     pieceIds: getPiecesByCostume('TR-003').map((p) => p.id),
-    images: [{ url: tr003a, alt: 'Macho Caporal Imperial' }],
+    images: [{ url: capoImp, alt: 'Macho Caporal Imperial' }],
     status: 'Reservado',
     featured: true,
     rating: 5,
@@ -74,7 +82,7 @@ export const costumes: Costume[] = [
     deposit: 550,
     availableSizes: ['L', 'XL'],
     pieceIds: getPiecesByCostume('TR-004').map((p) => p.id),
-    images: [{ url: tr004a, alt: 'Macho Caporal Real' }],
+    images: [{ url: capoImpReal, alt: 'Macho Caporal Real' }],
     status: 'Disponible',
     rating: 4.7,
     totalRentals: 39,
@@ -90,7 +98,7 @@ export const costumes: Costume[] = [
     deposit: 320,
     availableSizes: ['XS', 'S', 'M', 'L'],
     pieceIds: getPiecesByCostume('TR-005').map((p) => p.id),
-    images: [{ url: tr005a, alt: 'China Supay Elegance' }],
+    images: [{ url: chinaEleg, alt: 'China Supay Elegance' }],
     status: 'Disponible',
     featured: true,
     rating: 4.9,
@@ -107,7 +115,7 @@ export const costumes: Costume[] = [
     deposit: 300,
     availableSizes: ['S', 'M', 'L'],
     pieceIds: getPiecesByCostume('TR-006').map((p) => p.id),
-    images: [{ url: tr006a, alt: 'China Supay Tradicional' }],
+    images: [{ url: chinaTradi, alt: 'China Supay Tradicional' }],
     status: 'Alquilado',
     rating: 4.6,
     totalRentals: 98,
@@ -123,7 +131,7 @@ export const costumes: Costume[] = [
     deposit: 340,
     availableSizes: ['S', 'M', 'L', 'XL'],
     pieceIds: getPiecesByCostume('TR-007').map((p) => p.id),
-    images: [img('soliver-tr007-a', 'Cholita de Gala')],
+    images: [{ url: cholitaGala, alt: 'Cholita de Gala' }],
     status: 'Disponible',
     rating: 4.8,
     totalRentals: 71,
@@ -139,7 +147,7 @@ export const costumes: Costume[] = [
     deposit: 280,
     availableSizes: ['S', 'M', 'L'],
     pieceIds: getPiecesByCostume('TR-008').map((p) => p.id),
-    images: [img('soliver-tr008-a', 'Cholita Paceña')],
+    images: [{ url: cholitaPa, alt: 'Cholita Paceña' }],
     status: 'Disponible',
     rating: 4.5,
     totalRentals: 63,
@@ -155,7 +163,7 @@ export const costumes: Costume[] = [
     deposit: 260,
     availableSizes: ['M', 'L', 'XL'],
     pieceIds: getPiecesByCostume('TR-009').map((p) => p.id),
-    images: [img('soliver-tr009-a', 'Achachi Ceremonial')],
+    images: [{ url: achachi, alt: 'Achachi Ceremonial' }],
     status: 'Reparacion',
     rating: 4.4,
     totalRentals: 22,
@@ -171,7 +179,7 @@ export const costumes: Costume[] = [
     deposit: 150,
     availableSizes: ['XS', 'S'],
     pieceIds: getPiecesByCostume('TR-010').map((p) => p.id),
-    images: [img('soliver-tr010-a', 'Infantil Caporal Mini')],
+    images: [{ url: infantecapo, alt: 'Infantil Caporal Mini' }],
     status: 'Disponible',
     rating: 4.9,
     totalRentals: 54,
@@ -186,7 +194,7 @@ export const costumes: Costume[] = [
     deposit: 140,
     availableSizes: ['XS', 'S'],
     pieceIds: getPiecesByCostume('TR-011').map((p) => p.id),
-    images: [img('soliver-tr011-a', 'Infantil China Supay Mini')],
+    images: [{ url: chinaInf, alt: 'Infantil China Supay Mini' }],
     status: 'Disponible',
     rating: 4.7,
     totalRentals: 41,
@@ -201,7 +209,7 @@ export const costumes: Costume[] = [
     deposit: 520,
     availableSizes: ['M', 'L'],
     pieceIds: getPiecesByCostume('TR-012').map((p) => p.id),
-    images: [img('soliver-tr012-a', 'Macho Caporal Plata')],
+    images: [{ url: capoPlata, alt: 'Macho Caporal Plata' }],
     status: 'Disponible',
     rating: 4.6,
     totalRentals: 18,
