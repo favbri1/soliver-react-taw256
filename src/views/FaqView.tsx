@@ -13,6 +13,10 @@ const faqs = [
     q: '¿Cómo se libera el depósito de garantía?',
     a: 'El depósito se libera al devolver el conjunto completo y en buen estado, dentro del plazo acordado.',
   },
+  {
+    q: '¿Puedo comprar un traje en lugar de alquilarlo?',
+    a: 'Sí, en los trajes marcados como "También en venta". Elige "Comprar" en el detalle del traje: no necesitas fechas ni depósito y el precio de venta es distinto al de alquiler.',
+  },
 ]
 
 export default function FaqView() {
@@ -21,7 +25,7 @@ export default function FaqView() {
       <p className="eyebrow">Ayuda</p>
       <h1 className="mt-1 font-display text-3xl font-semibold text-ink-900 sm:text-4xl">Preguntas frecuentes</h1>
       <p className="mt-3 max-w-xl text-ink-500">
-        Aquí respondemos las dudas más comunes sobre el proceso de alquiler de trajes de Caporal.
+        Aquí respondemos las dudas más comunes sobre el alquiler y la venta de trajes de Caporal.
       </p>
 
       <div className="mt-8 space-y-4">

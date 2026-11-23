@@ -1,6 +1,6 @@
-# SOLIVER — Alquiler de Trajes de Caporal
+# SOLIVER — Alquiler y Venta de Trajes de Caporal
 
-Aplicación web para la gestión de una tienda de **alquiler de trajes de Caporal**: catálogo público para clientes, flujo de reserva en línea y panel administrativo para controlar inventario, reservas, alquileres, devoluciones, pagos y reportes.
+Aplicación web para la gestión de una tienda de **alquiler y venta de trajes de Caporal**: catálogo público para clientes, flujo de reserva y compra en línea y panel administrativo para controlar inventario, reservas, alquileres, devoluciones, pagos y reportes.
 
 Proyecto de la materia **TAW-256**.
 
@@ -12,7 +12,7 @@ Proyecto de la materia **TAW-256**.
 
 ## 1. Objetivo
 
-Digitalizar el proceso de alquiler de trajes de Caporal, permitiendo:
+Digitalizar el proceso de alquiler y venta de trajes de Caporal, permitiendo:
 
 - Al **cliente**: explorar el catálogo, consultar disponibilidad por fechas, reservar uno o varios trajes (con una talla por unidad) y consultar su reserva.
 - Al **administrador**: controlar el catálogo de trajes, el inventario por piezas, las reservas, los alquileres activos, las devoluciones (con multas por retraso o piezas faltantes), los clientes y los pagos, apoyándose en un dashboard con métricas y gráficos.
@@ -93,10 +93,10 @@ El catálogo, el detalle de traje, la reserva y la consulta de reserva son públ
 | Ruta | Descripción |
 |---|---|
 | `/` | Catálogo con filtros (categoría, talla, búsqueda, precio, solo disponibles) |
-| `/trajes/:id` | Detalle del traje: galería, piezas del conjunto, consulta de disponibilidad por fechas, **selector de cantidad con una talla independiente por unidad** y total dinámico (alquiler + depósito) × cantidad |
-| `/reservar/:id` | Flujo de reserva en 6 pasos: cantidad y tallas → fechas → disponibilidad → datos del cliente → resumen (con desglose por talla) → anticipo |
+| `/trajes/:id` | Detalle del traje: galería, piezas del conjunto, **selector de talla por unidad** y total dinámico. En los trajes con venta aparece el selector **Alquilar / Comprar**: alquiler = (alquiler + depósito) × cantidad, con consulta de disponibilidad por fechas; compra = precio de venta × cantidad, sin fechas ni depósito |
+| `/reservar/:id` | **Alquiler** (6 pasos): cantidad y tallas → fechas → disponibilidad → cliente → resumen → anticipo. **Compra** (4 pasos): cantidad y tallas → cliente → resumen → anticipo (50% del total) |
 | `/reserva/:id` | Comprobante de reserva con código y QR |
-| `/mi-reserva` | Consulta de reserva por código |
+| `/mi-reserva` | Consulta por código de reserva (`SOL-…`, alquiler) o de compra (`VTA-…`) |
 | `/sobre-nosotros` | Información de la empresa |
 | `/preguntas-frecuentes` | Preguntas frecuentes |
 | `/acceso-administrativo` | Contraseña previa para entrar al área del personal |
@@ -109,9 +109,9 @@ El catálogo, el detalle de traje, la reserva y la consulta de reserva son públ
 | Ruta | Descripción |
 |---|---|
 | `/dashboard` | Métricas, alertas de negocio, gráficos de ingresos, reservas por mes, trajes más alquilados y estado del inventario |
-| `/admin/trajes` | **CRUD de trajes** (crear, editar, eliminación lógica con confirmación) con modal de formulario; imágenes por URL o archivo *(solo Administrador)* |
+| `/admin/trajes` | **CRUD de trajes** (crear, editar, eliminación lógica con confirmación) con modal de formulario; imágenes por URL o archivo. Cada traje se marca como **Solo alquiler** o **Alquiler y venta** (con precio de venta, siempre mayor al de alquiler) *(solo Administrador)* |
 | `/inventario` | Inventario por traje con detalle de piezas y su estado |
-| `/reservas` | Listado de reservas |
+| `/reservas` | Reservas de alquiler y pedidos de compra, con columna *Tipo* |
 | `/calendario` | Calendario de reservas |
 | `/alquileres` | Alquileres activos |
 | `/devoluciones` | Registro de devoluciones con multas por retraso o piezas faltantes |
@@ -122,6 +122,22 @@ El catálogo, el detalle de traje, la reserva y la consulta de reserva son públ
 | `/admin/accesos` | **Registro de accesos**: usuario, IP, evento, navegador, fecha y hora *(solo Administrador)* |
 
 Además, la barra **"Escenario"** del panel (escenarios de demostración) permite simular distintos días de operación (normal, alta demanda, día de entrada, devoluciones, incidencias) y ver cómo cambian el dashboard y las alertas.
+
+### Alquiler y venta
+
+Todos los trajes se alquilan; **algunos además se pueden comprar**. El administrador decide la modalidad al crear o editar cada traje: *Solo alquiler* o *Alquiler y venta*. Si elige venta, debe indicar un **precio de venta mayor al de alquiler** (el formulario no deja guardar un precio igual o menor).
+
+| | Alquiler | Compra |
+|---|---|---|
+| Precio | Precio de alquiler | Precio de venta |
+| Depósito | Sí (por unidad) | No |
+| Fechas y disponibilidad | Sí | No |
+| Anticipo | 50% del alquiler | 50% del total |
+| Código | `SOL-2026-…` | `VTA-2026-…` |
+
+- En el catálogo, los trajes con venta muestran la etiqueta "También en venta" y su precio de compra; hay un filtro *Disponibles para compra*.
+- Las compras no bloquean la disponibilidad del traje ni aparecen en el calendario de alquileres; sí figuran en *Reservas* (columna *Tipo*).
+- En los datos de ejemplo se venden 6 de los 12 trajes (TR-001, TR-003, TR-004, TR-005, TR-007 y TR-012). El campo está en `src/mocks/costumes.ts` (`saleAvailable` y `salePrice`) y las reglas de precios en `src/utils/pricing.ts`.
 
 ### Seguridad y control de acceso (simulado en el frontend)
 
@@ -186,7 +202,7 @@ Leyenda: ✅ cumplido · 🟡 parcial · ❌ pendiente
 
 | # | Requisito | Estado | Detalle |
 |---|---|:---:|---|
-| — | Objetivo bien definido | ✅ | Alquiler de trajes de Caporal (ver sección 1) |
+| — | Objetivo bien definido | ✅ | Alquiler y venta de trajes de Caporal (ver sección 1) |
 | 1 | Al menos un menú | ✅ | Sidebar contraíble (escritorio), drawer (móvil) y menú público |
 | 2 | CRUD con eliminación lógica | ✅ | CRUD de trajes: al eliminar, el traje se marca con `deletedAt` y se oculta del catálogo, inventario, calendario y dashboard, pero el registro se conserva (las reservas antiguas siguen mostrando su nombre). Con backend será una columna `deleted_at` |
 | 3 | Frontend en React | ✅ | React 18 + TypeScript + Vite |
@@ -232,6 +248,7 @@ Las decisiones de abajo son una **propuesta de trabajo**, aún no implementadas.
 - **Imágenes:** hoy las subidas por archivo usan `URL.createObjectURL` (temporal). Habrá que subir el archivo y guardar la URL definitiva.
 - **Reservas con varias unidades:** el tipo `Reservation` ya incluye `quantity` y `sizes[]`. En base de datos conviene modelarlo como una tabla de ítems (una fila por unidad con su talla).
 - **Disponibilidad por stock:** hoy solo se verifica el cruce de fechas; el backend debe comprobar que existan N unidades libres del modelo.
+- **Ventas:** guardar `sale_available` y `sale_price` en el traje (con la regla `sale_price > rental_price` también en el servidor), registrar el tipo de operación en la reserva/pedido, **descontar el stock** al vender (una venta retira unidades del inventario de alquiler) y emitir comprobante/factura.
 - **Eliminación lógica:** el frontend ya usa `deletedAt`; en base de datos será una columna `deleted_at` y las consultas deberán filtrarla.
 - **Seguridad de acceso:** el frontend ya tiene las pantallas y reglas; en NestJS hay que implementar hash bcrypt/argon2, JWT con guards por rol, CAPTCHA validado en el servidor, bloqueo tras 3 intentos (por usuario e IP), correo de recuperación con token de un solo uso y expiración, y el log de accesos con la IP real en base de datos.
 - **Documentación:** Swagger (`@nestjs/swagger`) o Scalar.

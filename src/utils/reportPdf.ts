@@ -100,7 +100,7 @@ export function buildReportPdf(data: ReportData, meta: ReportMeta): Uint8Array {
   doc.rect(0, 0, doc.width, 78, { fill: INK })
   doc.rect(0, 78, doc.width, 3, { fill: GOLD })
   doc.text('SOLIVER', MARGIN, 38, { size: 24, bold: true, color: GOLD })
-  doc.text('ALQUILER DE TRAJES DE CAPORAL', MARGIN, 54, { size: 8, color: [200, 200, 200] })
+  doc.text('ALQUILER Y VENTA DE TRAJES DE CAPORAL', MARGIN, 54, { size: 8, color: [200, 200, 200] })
   doc.text('Reporte de gestión', doc.width - MARGIN, 38, { size: 16, bold: true, color: WHITE, align: 'right' })
   doc.text(`${dateStr} · ${timeStr}`, doc.width - MARGIN, 54, { size: 8.5, color: [200, 200, 200], align: 'right' })
   y = 98
@@ -228,7 +228,7 @@ export function buildReportPdf(data: ReportData, meta: ReportMeta): Uint8Array {
   for (let i = 0; i < total; i++) {
     doc.setPage(i)
     doc.line(MARGIN, 812, doc.width - MARGIN, 812, { color: LINE, width: 0.5 })
-    doc.text('SOLIVER · Alquiler de Trajes de Caporal', MARGIN, 826, { size: 8, color: GRAY })
+    doc.text('SOLIVER · Alquiler y Venta de Trajes de Caporal', MARGIN, 826, { size: 8, color: GRAY })
     doc.text(`Página ${i + 1} de ${total}`, doc.width - MARGIN, 826, { size: 8, color: GRAY, align: 'right' })
   }
 

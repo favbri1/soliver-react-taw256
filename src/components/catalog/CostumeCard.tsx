@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import type { Costume } from '@/types'
 import { CATEGORY_LABELS } from '@/types'
 import { formatCurrency } from '@/utils/format'
+import { canBeSold } from '@/utils/pricing'
 import StatusBadge from '@/components/common/StatusBadge'
 
 /**
@@ -16,6 +17,8 @@ type CostumeCardProps = {
 
 export default function CostumeCard({ costume, discountPercent }: CostumeCardProps) {
   const hasDiscount = !!discountPercent && discountPercent > 0
+  // Algunos trajes se pueden alquilar y también comprar.
+  const forSale = canBeSold(costume)
   const finalPrice = hasDiscount
     ? costume.rentalPrice - (costume.rentalPrice * discountPercent!) / 100
     : costume.rentalPrice
@@ -41,6 +44,11 @@ export default function CostumeCard({ costume, discountPercent }: CostumeCardPro
             Destacado
           </span>
         )}
+        {forSale && (
+          <span className="absolute bottom-3 right-3 rounded-full border border-gold-500 bg-ink-900/80 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-gold-500">
+            También en venta
+          </span>
+        )}
         {hasDiscount && (
           <span className="absolute left-3 bottom-3 rounded-full bg-wine-500 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
             -{discountPercent}%
@@ -54,7 +62,7 @@ export default function CostumeCard({ costume, discountPercent }: CostumeCardPro
         </h3>
         <div className="mt-3 flex items-center justify-between">
           <div>
-            <p className="text-[11px] text-ink-400">Desde</p>
+            <p className="text-[11px] text-ink-400">Alquiler desde</p>
             {hasDiscount ? (
               <div className="flex items-center gap-2">
                 <p className="text-xs text-ink-400 line-through">{formatCurrency(costume.rentalPrice)}</p>
@@ -62,6 +70,11 @@ export default function CostumeCard({ costume, discountPercent }: CostumeCardPro
               </div>
             ) : (
               <p className="font-semibold text-gold-600">{formatCurrency(finalPrice)}</p>
+            )}
+            {forSale && (
+              <p className="mt-1 text-[11px] text-ink-400">
+                Compra: <span className="font-semibold text-ink-900">{formatCurrency(costume.salePrice ?? 0)}</span>
+              </p>
             )}
           </div>
           <div className="flex flex-wrap justify-end gap-1">

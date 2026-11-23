@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { Check } from 'lucide-react'
-import type { Costume } from '@/types'
+import type { Costume, OperationType } from '@/types'
 import { costumeService } from '@/services/costume.service'
 import { reservationService } from '@/services/reservation.service'
 import { clientService } from '@/services/client.service'
 import { formatCurrency, nightsBetween } from '@/utils/format'
+import { calcOrder, canBeSold } from '@/utils/pricing'
 import QuantitySizePicker from '@/components/costumes/QuantitySizePicker'
 import { useQuantitySizes, groupSizes } from '@/hooks/useQuantitySizes'
 import { validateFullName, validatePhone, validateOptionalEmail } from '@/utils/validators'
@@ -13,11 +14,27 @@ import DateRangePicker from '@/components/common/DateRangePicker'
 import AvailabilityBadge from '@/components/reservations/AvailabilityBadge'
 
 type AvailState = 'idle' | 'checking' | 'available' | 'unavailable'
-const steps = ['Cantidad y tallas', 'Fechas', 'Disponibilidad', 'Cliente', 'Resumen', 'Anticipo']
-const advancePercent = 0.5
+type StepId = 'sizes' | 'dates' | 'availability' | 'client' | 'summary' | 'payment'
+
+// El alquiler necesita fechas y disponibilidad; la compra no.
+const RENT_STEPS: { id: StepId; label: string }[] = [
+  { id: 'sizes', label: 'Cantidad y tallas' },
+  { id: 'dates', label: 'Fechas' },
+  { id: 'availability', label: 'Disponibilidad' },
+  { id: 'client', label: 'Cliente' },
+  { id: 'summary', label: 'Resumen' },
+  { id: 'payment', label: 'Anticipo' },
+]
+const SALE_STEPS: { id: StepId; label: string }[] = [
+  { id: 'sizes', label: 'Cantidad y tallas' },
+  { id: 'client', label: 'Cliente' },
+  { id: 'summary', label: 'Resumen' },
+  { id: 'payment', label: 'Anticipo' },
+]
 
 /** Selección que puede llegar desde el detalle del traje. */
 interface FlowState {
+  mode?: OperationType
   quantity?: number
   sizes?: string[]
   start?: string
@@ -32,6 +49,11 @@ export default function ReservationFlowView() {
 
   const [costume, setCostume] = useState<Costume | null>(null)
   const [step, setStep] = useState(1)
+  // Alquiler (por defecto) o Venta, según lo elegido en el detalle del traje.
+  const [mode, setMode] = useState<OperationType>(preset.mode === 'Venta' ? 'Venta' : 'Alquiler')
+  const isSale = mode === 'Venta'
+  const steps = isSale ? SALE_STEPS : RENT_STEPS
+  const current = steps[step - 1].id
 
   // Cantidad + una talla por unidad (ej. 7 trajes con tallas distintas).
   const { quantity, sizes: selectedSizes, setQuantity, setSizeAt, reset } = useQuantitySizes(
@@ -60,6 +82,8 @@ export default function ReservationFlowView() {
     costumeService.getCostumeById(id).then((c) => {
       setCostume(c ?? null)
       if (!c) return
+      // Solo los trajes con precio de venta pueden comprarse.
+      if (!canBeSold(c)) setMode('Alquiler')
       // Si venimos del detalle con una selección hecha, la respetamos.
       if (preset.sizes?.length) {
         reset(c.availableSizes[0] ?? null)
@@ -73,11 +97,14 @@ export default function ReservationFlowView() {
 
   const nights = start && end ? nightsBetween(start, end) : 0
 
-  // ---- Totales dinámicos: precio unitario × cantidad (+ depósito por unidad) ----
-  const rentalSubtotal = (costume?.rentalPrice ?? 0) * quantity
-  const depositSubtotal = (costume?.deposit ?? 0) * quantity
-  const total = rentalSubtotal + depositSubtotal
-  const advance = Math.round(rentalSubtotal * advancePercent)
+  // ---- Totales dinámicos según la modalidad ----
+  //  Alquiler: (alquiler + depósito) × cantidad. Venta: precio de venta × cantidad, sin depósito.
+  const order = costume ? calcOrder(costume, mode, quantity) : { unitPrice: 0, subtotal: 0, deposit: 0, total: 0, advance: 0 }
+  const { unitPrice, subtotal, deposit: depositSubtotal, total, advance } = order
+
+  function goTo(id: StepId) {
+    setStep(steps.findIndex((s) => s.id === id) + 1)
+  }
 
   async function checkAvailability() {
     if (!costume) return
@@ -92,21 +119,21 @@ export default function ReservationFlowView() {
 
   function canAdvance(): boolean {
     // Todas las unidades deben tener talla elegida.
-    if (step === 1) return selectedSizes.length === quantity && selectedSizes.every(Boolean)
-    if (step === 2) return !!start && !!end
-    if (step === 3) return availState === 'available'
-    if (step === 4) return clientDataValid
+    if (current === 'sizes') return selectedSizes.length === quantity && selectedSizes.every(Boolean)
+    if (current === 'dates') return !!start && !!end
+    if (current === 'availability') return availState === 'available'
+    if (current === 'client') return clientDataValid
     return true
   }
 
   function next() {
     // En el paso de datos del cliente, si hay errores los mostramos todos.
-    if (step === 4 && !clientDataValid) {
+    if (current === 'client' && !clientDataValid) {
       setTouched({ name: true, phone: true, email: true })
       return
     }
     if (!canAdvance()) return
-    if (step === 2) checkAvailability()
+    if (current === 'dates') checkAvailability()
     setStep((s) => Math.min(s + 1, steps.length))
   }
   function back() {
@@ -120,15 +147,18 @@ export default function ReservationFlowView() {
     const clients = await clientService.getClients()
     const clientId = clients[0]?.id ?? 'CLI-001'
     const reservation = await reservationService.createReservation({
+      operation: mode,
       costumeId: costume.id,
       clientId,
       // `size` se mantiene para compatibilidad; `sizes` lleva el detalle por unidad.
       size: selectedSizes[0],
       quantity,
       sizes: selectedSizes,
-      startDate: `${start}T10:00:00`,
-      endDate: `${end}T18:00:00`,
-      rentalAmount: rentalSubtotal,
+      // Una venta no tiene período: se registra con la fecha del pedido.
+      startDate: isSale ? `${today}T10:00:00` : `${start}T10:00:00`,
+      endDate: isSale ? `${today}T10:00:00` : `${end}T18:00:00`,
+      rentalAmount: isSale ? 0 : subtotal,
+      saleAmount: isSale ? subtotal : undefined,
       depositAmount: depositSubtotal,
       advanceAmount: advance,
       totalAmount: total,
@@ -143,13 +173,13 @@ export default function ReservationFlowView() {
 
   return (
     <div className="container-page max-w-3xl py-10">
-      <p className="eyebrow">Reservar</p>
+      <p className="eyebrow">{isSale ? 'Comprar' : 'Reservar'}</p>
       <h1 className="mt-1 font-display text-3xl font-semibold text-ink-900">{costume.name}</h1>
 
       {/* Stepper */}
       <ol className="mt-6 flex flex-wrap items-center gap-2 text-xs">
         {steps.map((s, i) => (
-          <li key={s} className="flex items-center gap-2">
+          <li key={s.id} className="flex items-center gap-2">
             <span
               className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold ${
                 i + 1 < step ? 'bg-emerald-500 text-white' : i + 1 === step ? 'bg-ink-900 text-white' : 'bg-ink-100 text-ink-400'
@@ -157,17 +187,17 @@ export default function ReservationFlowView() {
             >
               {i + 1 < step ? <Check className="h-3.5 w-3.5" /> : i + 1}
             </span>
-            <span className={i + 1 === step ? 'font-semibold text-ink-900' : 'text-ink-400'}>{s}</span>
+            <span className={i + 1 === step ? 'font-semibold text-ink-900' : 'text-ink-400'}>{s.label}</span>
           </li>
         ))}
       </ol>
 
       <div className="card mt-8 p-6">
-        {/* Step 1: cantidad y tallas */}
-        {step === 1 && (
+        {/* Paso: cantidad y tallas */}
+        {current === 'sizes' && (
           <div>
             <p className="mb-3 text-sm font-medium text-ink-900">
-              ¿Cuántos trajes necesitas? Elige la talla de cada uno
+              {isSale ? '¿Cuántos trajes deseas comprar?' : '¿Cuántos trajes necesitas?'} Elige la talla de cada uno
             </p>
             <QuantitySizePicker
               sizes={costume.availableSizes}
@@ -178,36 +208,36 @@ export default function ReservationFlowView() {
             />
             <div className="mt-5 flex items-center justify-between border-t border-ink-100 pt-4 text-sm">
               <span className="text-ink-400">
-                {quantity} × {formatCurrency(costume.rentalPrice)}
+                {quantity} × {formatCurrency(unitPrice)}
               </span>
-              <span className="font-semibold text-ink-900">{formatCurrency(rentalSubtotal)}</span>
+              <span className="font-semibold text-ink-900">{formatCurrency(subtotal)}</span>
             </div>
           </div>
         )}
 
-        {/* Step 2: fechas */}
-        {step === 2 && (
+        {/* Paso: fechas (solo alquiler) */}
+        {current === 'dates' && (
           <div>
             <p className="mb-3 text-sm font-medium text-ink-900">Selecciona las fechas de alquiler</p>
             <DateRangePicker start={start} end={end} min={today} onChangeStart={setStart} onChangeEnd={setEnd} />
           </div>
         )}
 
-        {/* Step 3: disponibilidad */}
-        {step === 3 && (
+        {/* Paso: disponibilidad (solo alquiler) */}
+        {current === 'availability' && (
           <div>
             <p className="mb-3 text-sm font-medium text-ink-900">Revisando disponibilidad</p>
             <AvailabilityBadge state={availState} />
             {availState === 'unavailable' && (
-              <button className="btn-outline mt-4" onClick={() => setStep(2)}>
+              <button className="btn-outline mt-4" onClick={() => goTo('dates')}>
                 Elegir otras fechas
               </button>
             )}
           </div>
         )}
 
-        {/* Step 4: cliente (con validaciones) */}
-        {step === 4 && (
+        {/* Paso: cliente (con validaciones) */}
+        {current === 'client' && (
           <div className="space-y-4">
             <p className="mb-1 text-sm font-medium text-ink-900">Tus datos</p>
 
@@ -265,10 +295,14 @@ export default function ReservationFlowView() {
           </div>
         )}
 
-        {/* Step 5: resumen */}
-        {step === 5 && (
+        {/* Paso: resumen */}
+        {current === 'summary' && (
           <div className="space-y-3 text-sm">
             <p className="mb-1 font-display text-lg font-semibold text-ink-900">Resumen</p>
+            <div className="flex justify-between">
+              <span className="text-ink-400">Operación</span>
+              <span className="font-medium text-ink-900">{isSale ? 'Compra' : 'Alquiler'}</span>
+            </div>
             <div className="flex justify-between">
               <span className="text-ink-400">Traje</span>
               <span className="font-medium text-ink-900">{costume.name}</span>
@@ -286,34 +320,38 @@ export default function ReservationFlowView() {
                   <li key={g.size} className="flex justify-between">
                     <span className="text-ink-600">Talla {g.size}</span>
                     <span className="text-ink-900">
-                      {g.count} × {formatCurrency(costume.rentalPrice)} = {formatCurrency(g.count * costume.rentalPrice)}
+                      {g.count} × {formatCurrency(unitPrice)} = {formatCurrency(g.count * unitPrice)}
                     </span>
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div className="flex justify-between">
-              <span className="text-ink-400">Fechas</span>
-              <span className="font-medium text-ink-900">
-                {start} → {end} ({nights} día{nights === 1 ? '' : 's'})
-              </span>
-            </div>
+            {!isSale && (
+              <div className="flex justify-between">
+                <span className="text-ink-400">Fechas</span>
+                <span className="font-medium text-ink-900">
+                  {start} → {end} ({nights} día{nights === 1 ? '' : 's'})
+                </span>
+              </div>
+            )}
             <hr className="border-ink-100" />
             <div className="flex justify-between">
               <span className="text-ink-400">
-                Alquiler ({quantity} × {formatCurrency(costume.rentalPrice)})
+                {isSale ? 'Compra' : 'Alquiler'} ({quantity} × {formatCurrency(unitPrice)})
               </span>
-              <span>{formatCurrency(rentalSubtotal)}</span>
+              <span>{formatCurrency(subtotal)}</span>
             </div>
+            {!isSale && (
+              <div className="flex justify-between">
+                <span className="text-ink-400">
+                  Depósito ({quantity} × {formatCurrency(costume.deposit)})
+                </span>
+                <span>{formatCurrency(depositSubtotal)}</span>
+              </div>
+            )}
             <div className="flex justify-between">
-              <span className="text-ink-400">
-                Depósito ({quantity} × {formatCurrency(costume.deposit)})
-              </span>
-              <span>{formatCurrency(depositSubtotal)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-ink-400">Anticipo (50% del alquiler)</span>
+              <span className="text-ink-400">{isSale ? 'Anticipo (50% del total)' : 'Anticipo (50% del alquiler)'}</span>
               <span>{formatCurrency(advance)}</span>
             </div>
             <hr className="border-ink-100" />
@@ -324,12 +362,12 @@ export default function ReservationFlowView() {
           </div>
         )}
 
-        {/* Step 6: anticipo */}
-        {step === 6 && (
+        {/* Paso: anticipo */}
+        {current === 'payment' && (
           <div className="space-y-4">
-            <p className="font-display text-lg font-semibold text-ink-900">Anticipo de reserva</p>
+            <p className="font-display text-lg font-semibold text-ink-900">{isSale ? 'Anticipo de compra' : 'Anticipo de reserva'}</p>
             <p className="text-sm text-ink-500">
-              Para confirmar tu reserva de {quantity} traje{quantity === 1 ? '' : 's'} se solicita un anticipo de{' '}
+              Para confirmar tu {isSale ? 'compra' : 'reserva'} de {quantity} traje{quantity === 1 ? '' : 's'} se solicita un anticipo de{' '}
               {formatCurrency(advance)}. Selecciona un método de pago.
             </p>
             <div className="grid grid-cols-3 gap-2">
@@ -349,12 +387,12 @@ export default function ReservationFlowView() {
             <span />
           )}
           {step < steps.length ? (
-            <button className="btn-dark" disabled={step !== 4 && !canAdvance()} onClick={next}>
+            <button className="btn-dark" disabled={current !== 'client' && !canAdvance()} onClick={next}>
               Continuar
             </button>
           ) : (
             <button className="btn-primary" disabled={submitting} onClick={confirm}>
-              {submitting ? 'Confirmando…' : 'Confirmar reserva'}
+              {submitting ? 'Confirmando…' : isSale ? 'Confirmar compra' : 'Confirmar reserva'}
             </button>
           )}
         </div>

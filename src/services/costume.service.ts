@@ -1,6 +1,7 @@
 import type { Costume, CostumeCategory } from '@/types'
 import { costumes as mockCostumes } from '@/mocks/costumes'
 import { isCostumeActive } from '@/utils/costume'
+import { canBeSold } from '@/utils/pricing'
 import { delay } from '@/utils/async'
 
 // ------------------------------------------------------------
@@ -17,6 +18,8 @@ export interface CostumeFilters {
   search?: string
   onlyAvailable?: boolean
   maxPrice?: number
+  /** Solo trajes que también se pueden comprar. */
+  saleOnly?: boolean
 }
 
 export const costumeService = {
@@ -36,6 +39,9 @@ export const costumeService = {
     }
     if (filters.onlyAvailable) {
       result = result.filter((c) => c.status === 'Disponible')
+    }
+    if (filters.saleOnly) {
+      result = result.filter(canBeSold)
     }
     if (filters.maxPrice) {
       result = result.filter((c) => c.rentalPrice <= filters.maxPrice!)

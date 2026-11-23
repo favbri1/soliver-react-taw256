@@ -32,6 +32,10 @@ export interface CostumeInput {
   description?: string
   rentalPrice: number
   deposit: number
+  /** true = se alquila y también se vende; false = solo alquiler. */
+  saleAvailable?: boolean
+  /** Precio de venta (obligatorio si saleAvailable; mayor al de alquiler). */
+  salePrice?: number
   availableSizes: string[]
   images: CostumeImage[]
   status?: CostumeStatus
@@ -94,6 +98,8 @@ export const inventoryService = {
       description: input.description ?? '',
       rentalPrice: input.rentalPrice,
       deposit: input.deposit,
+      saleAvailable: !!input.saleAvailable,
+      salePrice: input.saleAvailable ? input.salePrice : undefined,
       availableSizes: input.availableSizes,
       pieceIds: [], // sin backend no generamos piezas para trajes nuevos
       images: input.images,
@@ -108,6 +114,11 @@ export const inventoryService = {
     // No se puede editar un traje ya eliminado lógicamente.
     if (index === -1 || !isCostumeActive(mockCostumes[index])) return delay(undefined, 200)
     const updated: Costume = { ...mockCostumes[index], ...changes }
+    // Si pasa a ser solo de alquiler, se descarta el precio de venta.
+    if (!updated.saleAvailable) {
+      updated.saleAvailable = false
+      updated.salePrice = undefined
+    }
     mockCostumes[index] = updated
     return delay(updated, 300)
   },

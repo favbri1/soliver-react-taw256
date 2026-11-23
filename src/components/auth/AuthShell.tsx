@@ -9,14 +9,20 @@ interface Props {
 }
 
 /** Marco común de las pantallas de acceso (login, registro, recuperar contraseña). */
-export default function AuthShell({ title = 'SOLIVER', subtitle = 'Alquiler de Trajes de Caporal', children }: Props) {
+export default function AuthShell({ title = 'SOLIVER', subtitle = 'Alquiler y Venta de Trajes de Caporal', children }: Props) {
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
-      <div className="relative hidden overflow-hidden bg-ink-900 lg:block">
+      {/*
+        Panel izquierdo: ocupa exactamente el alto de la pantalla y queda fijo al
+        hacer scroll. La imagen va en posición absoluta para que su tamaño NO
+        estire la fila (antes una imagen alta hacía que el formulario se viera
+        desplazado hacia abajo).
+      */}
+      <div className="relative hidden overflow-hidden bg-ink-900 lg:sticky lg:top-0 lg:block lg:h-screen">
         <img
           src="https://picsum.photos/seed/soliver-login/1200/1600"
           alt="Trajes de Caporal SOLIVER"
-          className="h-full w-full object-cover opacity-70"
+          className="absolute inset-0 h-full w-full object-cover opacity-70"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-ink-900/60 via-ink-900/70 to-ink-900/60" />
         {/* Bloque de texto centrado en el panel (horizontal y verticalmente) */}
@@ -31,9 +37,10 @@ export default function AuthShell({ title = 'SOLIVER', subtitle = 'Alquiler de T
         </div>
       </div>
 
-      <div className="flex items-center justify-center bg-ink-50 px-6 py-10 sm:py-16">
+      {/* Panel del formulario: centrado vertical y horizontalmente en la pantalla */}
+      <div className="flex min-h-screen items-center justify-center bg-ink-50 px-6 py-8">
         <div className="w-full max-w-sm">
-          <div className="mb-6 flex flex-col items-center text-center">
+          <div className="mb-5 flex flex-col items-center text-center">
             <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full">
               <img src={logo} alt="Logo SOLIVER" className="h-full w-full object-cover" />
             </div>
@@ -43,7 +50,7 @@ export default function AuthShell({ title = 'SOLIVER', subtitle = 'Alquiler de T
 
           {children}
 
-          <p className="mt-8 text-center text-xs text-ink-400">
+          <p className="mt-6 text-center text-xs text-ink-400">
             <Link to="/" className="hover:text-ink-900 hover:underline">
               ← Volver al catálogo
             </Link>

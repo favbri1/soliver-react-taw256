@@ -72,7 +72,7 @@ export default function AboutView() {
           <div className="card mx-auto max-w-3xl p-8 text-center sm:p-12">
             <p className="eyebrow">Misión</p>
             <p className="mt-3 font-display text-2xl font-semibold leading-snug text-ink-900 sm:text-3xl">
-              Facilitar a fraternos y bailarines el acceso a trajes de Caporal de alta calidad mediante un servicio de alquiler
+              Facilitar a fraternos y bailarines el acceso a trajes de Caporal de alta calidad mediante un servicio de alquiler y venta
               ágil, confiable y moderno.
             </p>
           </div>

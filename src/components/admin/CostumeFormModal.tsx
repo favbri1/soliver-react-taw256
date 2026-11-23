@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { X, Upload, Trash2 } from 'lucide-react'
 import { CATEGORY_LABELS, type Costume, type CostumeCategory, type CostumeImage } from '@/types'
 import type { CostumeInput } from '@/services/inventory.service'
+import { validateSalePrice } from '@/utils/validators'
+import { formatCurrency } from '@/utils/format'
 import { sizes as SIZE_CATALOG } from '@/mocks/sizes'
 
 // ⚠️ Sin backend: las imágenes que se suban por archivo se convierten en una
@@ -26,6 +28,7 @@ const EMPTY: CostumeInput = {
   description: '',
   rentalPrice: 0,
   deposit: 0,
+  saleAvailable: false,
   availableSizes: [],
   images: [],
 }
@@ -49,6 +52,8 @@ export default function CostumeFormModal({ open, costume, saving, onClose, onSub
         description: costume.description,
         rentalPrice: costume.rentalPrice,
         deposit: costume.deposit,
+        saleAvailable: !!costume.saleAvailable,
+        salePrice: costume.salePrice,
         availableSizes: [...costume.availableSizes],
         images: [...costume.images],
         status: costume.status,
@@ -99,10 +104,20 @@ export default function CostumeFormModal({ open, costume, saving, onClose, onSub
     if (!values.name.trim()) return setError('El nombre del traje es obligatorio.')
     if (values.rentalPrice <= 0) return setError('El precio de alquiler debe ser mayor a 0.')
     if (values.deposit < 0) return setError('El depósito no puede ser negativo.')
+    // Si el traje también se vende, el precio de venta es obligatorio y mayor al de alquiler.
+    if (values.saleAvailable) {
+      const saleError = validateSalePrice(values.salePrice ?? 0, values.rentalPrice)
+      if (saleError) return setError(saleError)
+    }
     if (values.availableSizes.length === 0) return setError('Selecciona al menos una talla disponible.')
     if (values.images.length === 0) return setError('Agrega al menos una imagen del traje.')
     setError('')
-    onSubmit({ ...values, name: values.name.trim() })
+    onSubmit({
+      ...values,
+      name: values.name.trim(),
+      saleAvailable: !!values.saleAvailable,
+      salePrice: values.saleAvailable ? values.salePrice : undefined,
+    })
   }
 
   return (
@@ -171,6 +186,51 @@ export default function CostumeFormModal({ open, costume, saving, onClose, onSub
                 className="focus-ring w-full rounded-lg border border-ink-200 px-3 py-2.5 text-sm"
               />
             </label>
+          </div>
+
+          {/* Modalidad comercial: solo alquiler, o alquiler y venta */}
+          <div className="rounded-lg border border-ink-100 bg-ink-50/50 p-4 text-sm">
+            <span className="mb-2 block font-medium text-ink-700">Modalidad comercial</span>
+            <div className="grid gap-2 sm:grid-cols-2" role="group" aria-label="Modalidad comercial">
+              {[
+                { value: false, label: 'Solo alquiler', hint: 'El traje únicamente se alquila.' },
+                { value: true, label: 'Alquiler y venta', hint: 'El cliente podrá alquilarlo o comprarlo.' },
+              ].map((opt) => {
+                const active = !!values.saleAvailable === opt.value
+                return (
+                  <button
+                    key={opt.label}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => patch({ saleAvailable: opt.value, salePrice: opt.value ? values.salePrice : undefined })}
+                    className={`focus-ring rounded-lg border px-4 py-3 text-left transition-colors ${
+                      active ? 'border-ink-900 bg-ink-900 text-white' : 'border-ink-200 bg-white text-ink-600 hover:border-ink-900/40'
+                    }`}
+                  >
+                    <span className="block text-sm font-semibold">{opt.label}</span>
+                    <span className={`block text-xs ${active ? 'text-white/70' : 'text-ink-400'}`}>{opt.hint}</span>
+                  </button>
+                )
+              })}
+            </div>
+
+            {values.saleAvailable ? (
+              <label className="mt-3 block">
+                <span className="mb-1 block font-medium text-ink-700">Precio de venta (Bs.)</span>
+                <input
+                  value={values.salePrice || ''}
+                  onChange={(e) => patch({ salePrice: Number(e.target.value) })}
+                  type="number"
+                  min={0}
+                  placeholder="1800"
+                  className="focus-ring w-full rounded-lg border border-ink-200 bg-white px-3 py-2.5 text-sm"
+                />
+                <span className="mt-1 block text-xs text-ink-400">
+                  Debe ser mayor al precio de alquiler
+                  {values.rentalPrice > 0 ? ` (${formatCurrency(values.rentalPrice)})` : ''}.
+                </span>
+              </label>
+            ) : null}
           </div>
 
           <label className="block text-sm">

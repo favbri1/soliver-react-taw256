@@ -14,7 +14,7 @@ export default function PublicFooter() {
             <p className="font-display text-lg font-semibold text-white">SOLIVER</p>
           </div>
           <p className="mt-3 max-w-xs text-sm text-white/50">
-            Alquiler de trajes de Caporal para comparsas, fraternidades y bailarines independientes. Tradición, calidad y elegancia
+            Alquiler y venta de trajes de Caporal para comparsas, fraternidades y bailarines independientes. Tradición, calidad y elegancia
             en cada entrada.
           </p>
         </div>
@@ -28,10 +28,11 @@ export default function PublicFooter() {
           </ul>
         </div>
         <div>
-          <p className="eyebrow text-gold-500/80">Alquiler</p>
+          <p className="eyebrow text-gold-500/80">Alquiler y venta</p>
           <ul className="mt-3 space-y-2 text-sm text-white/60">
             <li>Cómo funciona</li>
-            <li>Depósito en garantía</li>
+            <li>Depósito en garantía (alquiler)</li>
+            <li>Compra de trajes</li>
             <li>Consultar disponibilidad</li>
             <li>Mi reserva</li>
           </ul>

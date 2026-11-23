@@ -20,6 +20,7 @@ function img(seed: string, alt: string) {
   return { url: `https://picsum.photos/seed/${seed}/900/1100`, alt }
 }
 
+// Venta: saleAvailable + salePrice (siempre mayor al rentalPrice). Los trajes sin esos campos son solo de alquiler.
 export const costumes: Costume[] = [
   {
     id: 'TR-001',
@@ -30,6 +31,8 @@ export const costumes: Costume[] = [
       'Conjunto tradicional de tropa, confeccionado con bordado dorado y acabados en cuero. Pensado para grupos numerosos que buscan uniformidad y elegancia en cada presentación.',
     rentalPrice: 180,
     deposit: 300,
+    saleAvailable: true,
+    salePrice: 1800,
     availableSizes: ['S', 'M', 'L', 'XL'],
     pieceIds: getPiecesByCostume('TR-001').map((p) => p.id),
     images: [{ url: capo1, alt: 'Caporal Varón Tropa Clásico' }, { url: tr001b, alt: 'detalle bordado' }],
@@ -63,6 +66,8 @@ export const costumes: Costume[] = [
       'Diseño imponente con hombreras altas y detalles dorados. El traje insignia de la comparsa, reservado para quienes lideran la entrada.',
     rentalPrice: 350,
     deposit: 500,
+    saleAvailable: true,
+    salePrice: 3200,
     availableSizes: ['M', 'L', 'XL'],
     pieceIds: getPiecesByCostume('TR-003').map((p) => p.id),
     images: [{ url: capoImp, alt: 'Macho Caporal Imperial' }],
@@ -80,6 +85,8 @@ export const costumes: Costume[] = [
       'Versión de gala con capa corta bordada y botas altas. Un traje de exhibición para el bailarín principal del bloque.',
     rentalPrice: 380,
     deposit: 550,
+    saleAvailable: true,
+    salePrice: 3500,
     availableSizes: ['L', 'XL'],
     pieceIds: getPiecesByCostume('TR-004').map((p) => p.id),
     images: [{ url: capoImpReal, alt: 'Macho Caporal Real' }],
@@ -96,6 +103,8 @@ export const costumes: Costume[] = [
       'Pollera amplia con bordado floral y blusa de encaje. Un conjunto femenino pensado para el movimiento y el brillo en escena.',
     rentalPrice: 200,
     deposit: 320,
+    saleAvailable: true,
+    salePrice: 1900,
     availableSizes: ['XS', 'S', 'M', 'L'],
     pieceIds: getPiecesByCostume('TR-005').map((p) => p.id),
     images: [{ url: chinaEleg, alt: 'China Supay Elegance' }],
@@ -129,6 +138,8 @@ export const costumes: Costume[] = [
       'Pollera de fiesta con manta de seda y sombrero borsalino. Conjunto pensado para quienes representan la elegancia paceña.',
     rentalPrice: 210,
     deposit: 340,
+    saleAvailable: true,
+    salePrice: 2000,
     availableSizes: ['S', 'M', 'L', 'XL'],
     pieceIds: getPiecesByCostume('TR-007').map((p) => p.id),
     images: [{ url: cholitaGala, alt: 'Cholita de Gala' }],
@@ -207,6 +218,8 @@ export const costumes: Costume[] = [
     description: 'Bordado en tonos plateados sobre base negra, para quienes buscan un contraste distinto al dorado clásico.',
     rentalPrice: 360,
     deposit: 520,
+    saleAvailable: true,
+    salePrice: 3300,
     availableSizes: ['M', 'L'],
     pieceIds: getPiecesByCostume('TR-012').map((p) => p.id),
     images: [{ url: capoPlata, alt: 'Macho Caporal Plata' }],

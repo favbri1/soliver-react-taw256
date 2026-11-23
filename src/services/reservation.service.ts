@@ -1,6 +1,7 @@
 import type { Reservation } from '@/types'
 import { reservations as mockReservations, getReservationsByCostume } from '@/mocks/reservations'
 import { delay } from '@/utils/async'
+import { operationOf } from '@/utils/pricing'
 
 // Reemplazar por:
 //   GET /api/reservations
@@ -30,12 +31,16 @@ export const reservationService = {
   },
 
   async getReservationsByCostume(costumeId: string): Promise<Reservation[]> {
-    return delay(getReservationsByCostume(costumeId), 180)
+    // El calendario es de alquileres: las ventas no ocupan fechas.
+    return delay(getReservationsByCostume(costumeId).filter((r) => operationOf(r) === 'Alquiler'), 180)
   },
 
   async checkAvailability(query: AvailabilityQuery): Promise<AvailabilityResult> {
-    const active = getReservationsByCostume(query.costumeId).filter((r) =>
-      ['Pendiente', 'Confirmada', 'Preparando', 'Entregada', 'EnAlquiler'].includes(r.status),
+    // Solo los alquileres ocupan fechas; una venta no bloquea la disponibilidad.
+    const active = getReservationsByCostume(query.costumeId).filter(
+      (r) =>
+        operationOf(r) === 'Alquiler' &&
+        ['Pendiente', 'Confirmada', 'Preparando', 'Entregada', 'EnAlquiler'].includes(r.status),
     )
     const conflicts = active.filter((r) => overlaps(query.startDate, query.endDate, r.startDate, r.endDate))
     return delay({ available: conflicts.length === 0, conflicts }, 350)
@@ -43,13 +48,16 @@ export const reservationService = {
 
   async createReservation(input: Omit<Reservation, 'id' | 'code' | 'createdAt' | 'status' | 'depositStatus'>): Promise<Reservation> {
     const id = `RES-${String(reservationSeq).padStart(3, '0')}`
-    const code = `SOL-2026-${String(100 + reservationSeq).padStart(5, '0')}`
+    // Las ventas usan un prefijo propio para distinguirlas del alquiler.
+    const prefix = input.operation === 'Venta' ? 'VTA' : 'SOL'
+    const code = `${prefix}-2026-${String(100 + reservationSeq).padStart(5, '0')}`
     reservationSeq += 1
     const reservation: Reservation = {
       ...input,
       id,
       code,
       status: 'Pendiente',
+      // En ventas no hay depósito; este campo no se muestra en ninguna pantalla.
       depositStatus: 'Pendiente',
       createdAt: new Date().toISOString(),
     }

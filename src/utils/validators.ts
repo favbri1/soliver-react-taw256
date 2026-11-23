@@ -88,3 +88,10 @@ export function validateIdentifier(value: string): string {
   if (v.length > 100) return 'Es demasiado largo.'
   return ''
 }
+
+/** Precio de venta: obligatorio cuando el traje se vende y SIEMPRE mayor al de alquiler. */
+export function validateSalePrice(salePrice: number, rentalPrice: number): string {
+  if (!salePrice || salePrice <= 0) return 'Ingresa el precio de venta.'
+  if (salePrice <= rentalPrice) return 'El precio de venta debe ser mayor al precio de alquiler.'
+  return ''
+}

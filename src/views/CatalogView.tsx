@@ -42,6 +42,8 @@ export default function CatalogView() {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState<CostumeCategory | 'Todas'>('Todas')
   const [size, setSize] = useState<string>('Todas')
+  // Modalidad: todos los trajes, o solo los que también se pueden comprar.
+  const [saleOnly, setSaleOnly] = useState(false)
 
   // Carga inicial
   useEffect(() => {
@@ -53,11 +55,11 @@ export default function CatalogView() {
 
   // Aplicar filtros
   useEffect(() => {
-    setFilters({ search, category, size })
+    setFilters({ search, category, size, saleOnly })
     fetchCostumes()
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, category, size])
+  }, [search, category, size, saleOnly])
 
   // Seleccionar o deseleccionar categoría
   function selectCategory(cat: CostumeCategory) {
@@ -78,7 +80,7 @@ export default function CatalogView() {
 
         <div className="container-page relative py-24 sm:py-32">
           <p className="eyebrow text-gold-500">
-            SOLIVER · Alquiler de trajes de Caporal
+            SOLIVER · Alquiler y venta de trajes de Caporal
           </p>
 
           <h1 className="mt-4 max-w-2xl font-display text-4xl font-semibold leading-[1.1] sm:text-6xl">
@@ -88,7 +90,7 @@ export default function CatalogView() {
           </h1>
 
           <p className="mt-5 max-w-lg text-white/70">
-            Trajes de Caporal en alquiler para momentos que merecen ser recordados.
+            Alquila o compra tu traje de Caporal para los momentos que merecen ser recordados.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
@@ -166,6 +168,16 @@ export default function CatalogView() {
               </option>
             ))}
           </select>
+
+          <select
+            value={saleOnly ? 'Venta' : 'Todos'}
+            onChange={(e) => setSaleOnly(e.target.value === 'Venta')}
+            aria-label="Modalidad"
+            className="focus-ring rounded-lg border border-ink-200 px-3 py-2.5 text-sm text-ink-700"
+          >
+            <option value="Todos">Alquiler y venta</option>
+            <option value="Venta">Disponibles para compra</option>
+          </select>
         </div>
 
         <div className="mt-6 flex items-center justify-between">
@@ -188,7 +200,7 @@ export default function CatalogView() {
           <div className="mt-6">
             <EmptyState
               title="Sin trajes para esos filtros"
-              message="Prueba con otra categoría, talla o término de búsqueda."
+              message="Prueba con otra categoría, talla, modalidad o término de búsqueda."
             />
           </div>
         ) : (
@@ -222,7 +234,7 @@ export default function CatalogView() {
               </p>
 
               <p className="mt-1 text-sm text-ink-500">
-                Elige tu traje, talla y fechas. Confirmamos disponibilidad al instante.
+                Elige tu traje y tu talla. Para alquilar, indica las fechas y confirmamos disponibilidad al instante; para comprar, no necesitas fechas.
               </p>
             </div>
 
@@ -234,7 +246,7 @@ export default function CatalogView() {
               </p>
 
               <p className="mt-1 text-sm text-ink-500">
-                Un pequeño anticipo asegura tu reserva; el depósito se libera al devolver.
+                Un anticipo asegura tu reserva o compra; en el alquiler, el depósito se libera al devolver.
               </p>
             </div>
 

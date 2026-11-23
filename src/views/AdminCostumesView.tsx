@@ -90,7 +90,24 @@ export default function AdminCostumesView() {
         ),
       },
       { key: 'category', label: 'Categoría', cell: (row) => CATEGORY_LABELS[row.category] },
-      { key: 'rentalPrice', label: 'Precio', align: 'right', cell: (row) => formatCurrency(row.rentalPrice) },
+      { key: 'rentalPrice', label: 'Alquiler', align: 'right', cell: (row) => formatCurrency(row.rentalPrice) },
+      {
+        key: 'salePrice',
+        label: 'Modalidad',
+        cell: (row) =>
+          row.saleAvailable && row.salePrice ? (
+            <div className="leading-tight">
+              <span className="inline-flex rounded-full bg-gold-500/15 px-2.5 py-1 text-xs font-semibold text-ink-900">
+                Alquiler y venta
+              </span>
+              <p className="mt-1 text-xs text-ink-400">Venta: {formatCurrency(row.salePrice)}</p>
+            </div>
+          ) : (
+            <span className="inline-flex rounded-full bg-ink-100 px-2.5 py-1 text-xs font-semibold text-ink-600">
+              Solo alquiler
+            </span>
+          ),
+      },
       { key: 'availableSizes', label: 'Tallas', cell: (row) => row.availableSizes.join(' · ') },
       { key: 'status', label: 'Estado', cell: (row) => <StatusBadge status={row.status} /> },
       {

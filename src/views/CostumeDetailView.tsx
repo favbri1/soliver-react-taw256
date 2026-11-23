@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { CheckCircle2 } from 'lucide-react'
-import type { Costume, Piece } from '@/types'
+import type { Costume, OperationType, Piece } from '@/types'
 import { CATEGORY_LABELS } from '@/types'
 import { costumeService } from '@/services/costume.service'
 import { inventoryService } from '@/services/inventory.service'
 import { reservationService } from '@/services/reservation.service'
 import { formatCurrency } from '@/utils/format'
+import { calcOrder, canBeSold } from '@/utils/pricing'
 import StatusBadge from '@/components/common/StatusBadge'
 import DateRangePicker from '@/components/common/DateRangePicker'
 import AvailabilityBadge from '@/components/reservations/AvailabilityBadge'
@@ -22,6 +23,8 @@ export default function CostumeDetailView() {
   const [pieces, setPieces] = useState<Piece[]>([])
   const [activeImage, setActiveImage] = useState(0)
   const [loading, setLoading] = useState(true)
+  // Alquilar o comprar (la compra solo existe en los trajes con precio de venta).
+  const [mode, setMode] = useState<OperationType>('Alquiler')
 
   const [start, setStart] = useState('')
   const [end, setEnd] = useState('')
@@ -40,6 +43,7 @@ export default function CostumeDetailView() {
       if (!active) return
       setCostume(c ?? null)
       setPieces(p)
+      setMode('Alquiler')
       // Al cargar el traje, arrancamos con 1 unidad y su primera talla disponible.
       reset(c?.availableSizes[0] ?? null)
       setLoading(false)
@@ -67,10 +71,12 @@ export default function CostumeDetailView() {
 
   const setComplete = !pieces.some((p) => p.critical && p.status !== 'Disponible')
 
-  // Totales dinámicos según la cantidad elegida.
-  const rentalSubtotal = (costume?.rentalPrice ?? 0) * quantity
-  const depositSubtotal = (costume?.deposit ?? 0) * quantity
-  const estimatedTotal = rentalSubtotal + depositSubtotal
+  // ¿Se puede comprar? ¿Está elegida la compra?
+  const forSale = costume ? canBeSold(costume) : false
+  const isSale = forSale && mode === 'Venta'
+
+  // Totales dinámicos según la modalidad y la cantidad elegida.
+  const order = costume ? calcOrder(costume, isSale ? 'Venta' : 'Alquiler', quantity) : null
 
   return (
     <div className="container-page py-10">
@@ -126,16 +132,57 @@ export default function CostumeDetailView() {
               </div>
               <p className="mt-4 text-ink-500">{costume.description}</p>
 
-              <div className="mt-6 flex items-end gap-8">
-                <div>
-                  <p className="text-xs text-ink-400">Alquiler / evento</p>
-                  <p className="font-display text-3xl font-semibold text-gold-600">{formatCurrency(costume.rentalPrice)}</p>
+              {/* Alquilar o comprar (solo en trajes con precio de venta) */}
+              {forSale && (
+                <div className="mt-6" role="group" aria-label="Modalidad">
+                  <p className="mb-2 text-xs font-medium uppercase tracking-wide text-ink-400">¿Qué deseas hacer?</p>
+                  <div className="inline-flex rounded-lg border border-ink-200 bg-white p-1">
+                    {(['Alquiler', 'Venta'] as OperationType[]).map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => setMode(m)}
+                        aria-pressed={mode === m}
+                        className={`focus-ring rounded-md px-5 py-2 text-sm font-semibold transition-colors ${
+                          mode === m ? 'bg-ink-900 text-white' : 'text-ink-600 hover:text-ink-900'
+                        }`}
+                      >
+                        {m === 'Alquiler' ? 'Alquilar' : 'Comprar'}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-ink-400">Depósito</p>
-                  <p className="font-display text-xl font-semibold text-ink-900">{formatCurrency(costume.deposit)}</p>
+              )}
+
+              {isSale ? (
+                <div className="mt-6 flex items-end gap-8">
+                  <div>
+                    <p className="text-xs text-ink-400">Precio de venta</p>
+                    <p className="font-display text-3xl font-semibold text-gold-600">{formatCurrency(costume.salePrice ?? 0)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-ink-400">Alquiler desde</p>
+                    <p className="font-display text-xl font-semibold text-ink-900">{formatCurrency(costume.rentalPrice)}</p>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="mt-6 flex items-end gap-8">
+                  <div>
+                    <p className="text-xs text-ink-400">Alquiler / evento</p>
+                    <p className="font-display text-3xl font-semibold text-gold-600">{formatCurrency(costume.rentalPrice)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-ink-400">Depósito</p>
+                    <p className="font-display text-xl font-semibold text-ink-900">{formatCurrency(costume.deposit)}</p>
+                  </div>
+                  {forSale && (
+                    <div>
+                      <p className="text-xs text-ink-400">Compra</p>
+                      <p className="font-display text-xl font-semibold text-ink-900">{formatCurrency(costume.salePrice ?? 0)}</p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Cantidad + talla independiente por unidad */}
               <div className="card mt-6 p-4">
@@ -147,23 +194,25 @@ export default function CostumeDetailView() {
                   onChangeSizeAt={setSizeAt}
                 />
 
-                {/* Total calculado dinámicamente: (alquiler + depósito) × cantidad */}
+                {/* Total dinámico: alquiler = (alquiler + depósito) × cantidad; compra = precio de venta × cantidad */}
                 <div className="mt-5 space-y-1.5 border-t border-ink-100 pt-4 text-sm">
                   <div className="flex justify-between">
                     <span className="text-ink-400">
-                      Alquiler ({quantity} × {formatCurrency(costume.rentalPrice)})
+                      {isSale ? 'Compra' : 'Alquiler'} ({quantity} × {formatCurrency(order?.unitPrice ?? 0)})
                     </span>
-                    <span className="text-ink-700">{formatCurrency(rentalSubtotal)}</span>
+                    <span className="text-ink-700">{formatCurrency(order?.subtotal ?? 0)}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-ink-400">
-                      Depósito ({quantity} × {formatCurrency(costume.deposit)})
-                    </span>
-                    <span className="text-ink-700">{formatCurrency(depositSubtotal)}</span>
-                  </div>
+                  {!isSale && (
+                    <div className="flex justify-between">
+                      <span className="text-ink-400">
+                        Depósito ({quantity} × {formatCurrency(costume.deposit)})
+                      </span>
+                      <span className="text-ink-700">{formatCurrency(order?.deposit ?? 0)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between pt-1.5 text-base font-semibold text-ink-900">
                     <span>Total</span>
-                    <span>{formatCurrency(estimatedTotal)}</span>
+                    <span>{formatCurrency(order?.total ?? 0)}</span>
                   </div>
                   {quantity > 1 && (
                     <p className="pt-1 text-xs text-ink-400">
@@ -191,23 +240,35 @@ export default function CostumeDetailView() {
                 </ul>
               </div>
 
-              <div className="card mt-6 p-4">
-                <p className="mb-3 text-xs font-medium uppercase tracking-wide text-ink-400">Consultar disponibilidad</p>
-                <DateRangePicker start={start} end={end} min={today} onChangeStart={setStart} onChangeEnd={setEnd} />
-                <button className="btn-outline mt-3 w-full" onClick={checkAvailability}>
-                  Consultar disponibilidad
-                </button>
-                <div className="mt-3">
-                  <AvailabilityBadge state={availState} />
+              {isSale ? (
+                <div className="card mt-6 p-4 text-sm text-ink-600">
+                  <p className="font-medium text-ink-900">Compra sin fechas ni depósito</p>
+                  <p className="mt-1 text-ink-400">
+                    El traje pasa a ser tuyo: pagas una sola vez y no hay fecha de devolución.
+                  </p>
                 </div>
-              </div>
+              ) : (
+                <div className="card mt-6 p-4">
+                  <p className="mb-3 text-xs font-medium uppercase tracking-wide text-ink-400">Consultar disponibilidad</p>
+                  <DateRangePicker start={start} end={end} min={today} onChangeStart={setStart} onChangeEnd={setEnd} />
+                  <button className="btn-outline mt-3 w-full" onClick={checkAvailability}>
+                    Consultar disponibilidad
+                  </button>
+                  <div className="mt-3">
+                    <AvailabilityBadge state={availState} />
+                  </div>
+                </div>
+              )}
 
+              {/* Se lleva la selección (modalidad, cantidad, tallas y fechas) al flujo de reserva. */}
               <Link
                 to={`/reservar/${costume.id}`}
-                state={{ quantity, sizes: selectedSizes, start, end }}
+                state={{ mode: isSale ? 'Venta' : 'Alquiler', quantity, sizes: selectedSizes, start, end }}
                 className="btn-primary mt-6 w-full"
               >
-                Reservar {quantity > 1 ? `${quantity} trajes` : 'traje'}
+                {isSale
+                  ? `Comprar ${quantity > 1 ? `${quantity} trajes` : 'traje'}`
+                  : `Reservar ${quantity > 1 ? `${quantity} trajes` : 'traje'}`}
               </Link>
             </div>
           </div>

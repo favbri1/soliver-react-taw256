@@ -17,7 +17,7 @@ export default function MyReservationLookupView() {
     if (reservation) {
       navigate(`/reserva/${reservation.code}`)
     } else {
-      setError('No encontramos una reserva con ese código. Verifica e intenta nuevamente.')
+      setError('No encontramos una reserva o compra con ese código. Verifica e intenta nuevamente.')
     }
   }
 
@@ -26,7 +26,7 @@ export default function MyReservationLookupView() {
       <p className="eyebrow">Mi reserva</p>
       <h1 className="mt-1 font-display text-3xl font-semibold text-ink-900">Consulta tu comprobante</h1>
       <p className="mt-2 text-sm text-ink-500">
-        Ingresa el código de reserva que recibiste al confirmar, por ejemplo SOL-2026-00124.
+        Ingresa el código de tu reserva o compra que recibiste al confirmar, por ejemplo SOL-2026-00124 (alquiler) o VTA-2026-00124 (compra).
       </p>
 
       <form className="mt-6 flex gap-2" onSubmit={search}>

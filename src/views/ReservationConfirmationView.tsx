@@ -8,6 +8,7 @@ import { formatCurrency, formatDate } from '@/utils/format'
 import StatusBadge from '@/components/common/StatusBadge'
 import QRCodeCard from '@/components/reservations/QRCodeCard'
 import { groupSizes } from '@/hooks/useQuantitySizes'
+import { operationOf } from '@/utils/pricing'
 
 export default function ReservationConfirmationView() {
   const { id = '' } = useParams()
@@ -28,13 +29,16 @@ export default function ReservationConfirmationView() {
     })
   }, [id])
 
+  // Alquiler o compra: la compra no tiene fechas de salida/devolución.
+  const isSale = reservation ? operationOf(reservation) === 'Venta' : false
+
   return (
     <div className="container-page flex max-w-md flex-col items-center py-16 text-center">
       {loading ? (
         <p className="text-ink-400">Cargando comprobante…</p>
       ) : reservation ? (
         <>
-          <p className="eyebrow">Reserva confirmada</p>
+          <p className="eyebrow">{isSale ? 'Compra registrada' : 'Reserva confirmada'}</p>
           <h1 className="mt-1 font-display text-2xl font-semibold text-ink-900">{reservation.code}</h1>
           <div className="mt-2">
             <StatusBadge status={reservation.status} />
@@ -42,6 +46,10 @@ export default function ReservationConfirmationView() {
 
           <div className="card mt-6 w-full p-6 text-left">
             <div className="flex justify-between text-sm">
+              <span className="text-ink-400">Operación</span>
+              <span className="font-medium text-ink-900">{isSale ? 'Compra' : 'Alquiler'}</span>
+            </div>
+            <div className="mt-2 flex justify-between text-sm">
               <span className="text-ink-400">Cliente</span>
               <span className="font-medium text-ink-900">{client?.name}</span>
             </div>
@@ -67,12 +75,19 @@ export default function ReservationConfirmationView() {
                 </ul>
               </div>
             ) : null}
-            <div className="mt-2 flex justify-between text-sm">
-              <span className="text-ink-400">Fecha</span>
-              <span className="font-medium text-ink-900">
-                {formatDate(reservation.startDate)} - {formatDate(reservation.endDate)}
-              </span>
-            </div>
+            {isSale ? (
+              <div className="mt-2 flex justify-between text-sm">
+                <span className="text-ink-400">Fecha del pedido</span>
+                <span className="font-medium text-ink-900">{formatDate(reservation.startDate)}</span>
+              </div>
+            ) : (
+              <div className="mt-2 flex justify-between text-sm">
+                <span className="text-ink-400">Fecha</span>
+                <span className="font-medium text-ink-900">
+                  {formatDate(reservation.startDate)} - {formatDate(reservation.endDate)}
+                </span>
+              </div>
+            )}
             <div className="mt-2 flex justify-between text-sm">
               <span className="text-ink-400">Total</span>
               <span className="font-medium text-gold-600">{formatCurrency(reservation.totalAmount)}</span>
@@ -82,7 +97,9 @@ export default function ReservationConfirmationView() {
           <div className="mt-6">
             <QRCodeCard code={reservation.code} />
           </div>
-          <p className="mt-4 text-sm text-ink-500">Presenta este código al recoger tu traje.</p>
+          <p className="mt-4 text-sm text-ink-500">
+            {isSale ? 'Presenta este código para recoger tu compra.' : 'Presenta este código al recoger tu traje.'}
+          </p>
 
           <Link to="/" className="btn-outline mt-8">
             Volver al catálogo

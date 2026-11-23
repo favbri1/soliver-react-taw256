@@ -60,6 +60,13 @@ export interface Costume {
   description: string
   rentalPrice: number
   deposit: number
+  /**
+   * Si es true, además de alquilarse el traje se puede COMPRAR. Si no existe o es
+   * false, el traje es solo de alquiler.
+   */
+  saleAvailable?: boolean
+  /** Precio de venta por unidad (Bs.). Solo aplica si `saleAvailable`; debe ser mayor al de alquiler. */
+  salePrice?: number
   /** Eliminación lógica: fecha ISO en que se "eliminó". Si existe, el traje se oculta de las listas pero el registro se conserva. */
   deletedAt?: string | null
   availableSizes: string[]
@@ -85,9 +92,16 @@ export type ReservationStatus =
   | 'Devuelta'
   | 'Cancelada'
 
+/** Tipo de operación de una reserva/pedido. */
+export type OperationType = 'Alquiler' | 'Venta'
+
 export interface Reservation {
   id: string
   code: string
+  /** Alquiler o Venta. Si no existe (reservas anteriores) se asume 'Alquiler'. */
+  operation?: OperationType
+  /** Monto de la venta (solo operación 'Venta'; en ventas rentalAmount y depositAmount son 0). */
+  saleAmount?: number
   costumeId: string
   clientId: string
   /** Talla principal. Se mantiene por compatibilidad con reservas de 1 unidad. */
