@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import logo from '@/assets/logo.png'
+import fondoacces from '@/assets/accesoadminsoliver.png'
 
 interface Props {
   title?: string
@@ -12,26 +13,20 @@ interface Props {
 export default function AuthShell({ title = 'SOLIVER', subtitle = 'Alquiler y Venta de Trajes de Caporal', children }: Props) {
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
-      {/*
-        Panel izquierdo: ocupa exactamente el alto de la pantalla y queda fijo al
-        hacer scroll. La imagen va en posición absoluta para que su tamaño NO
-        estire la fila (antes una imagen alta hacía que el formulario se viera
-        desplazado hacia abajo).
-      */}
       <div className="relative hidden overflow-hidden bg-ink-900 lg:sticky lg:top-0 lg:block lg:h-screen">
         <img
-          src="https://picsum.photos/seed/soliver-login/1200/1600"
+          src={fondoacces}
           alt="Trajes de Caporal SOLIVER"
-          className="absolute inset-0 h-full w-full object-cover opacity-70"
+          className="absolute inset-0 h-full w-full object-cover opacity-80"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-ink-900/60 via-ink-900/70 to-ink-900/60" />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink-900/60 via-ink-900/25 to-transparent" />
         {/* Bloque de texto centrado en el panel (horizontal y verticalmente) */}
         <div className="absolute inset-0 flex items-center justify-center px-12 xl:px-20">
           <div className="max-w-md text-center text-white">
             <p className="eyebrow text-gold-500">Panel administrativo</p>
             <span className="mx-auto mt-4 block h-px w-12 bg-gold-500" aria-hidden="true" />
             <p className="mt-5 font-display text-3xl font-semibold leading-tight xl:text-4xl">
-              Gestiona inventario, reservas y alquileres desde un solo lugar.
+              Gestiona inventario, reservas y alquileres y ventas desde un solo lugar.
             </p>
           </div>
         </div>
