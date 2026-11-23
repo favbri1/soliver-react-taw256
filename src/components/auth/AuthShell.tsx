@@ -26,7 +26,7 @@ export default function AuthShell({ title = 'SOLIVER', subtitle = 'Alquiler y Ve
             <p className="eyebrow text-gold-500">Panel administrativo</p>
             <span className="mx-auto mt-4 block h-px w-12 bg-gold-500" aria-hidden="true" />
             <p className="mt-5 font-display text-3xl font-semibold leading-tight xl:text-4xl">
-              Gestiona inventario, reservas y alquileres y ventas desde un solo lugar.
+             Gestiona inventario, reservas, alquileres y ventas desde un solo lugar.
             </p>
           </div>
         </div>
